@@ -1,0 +1,10 @@
+# Ignorar banco de dados
+db.sqlite3
+
+# Ignorar ambiente virtual
+venv/
+env/
+
+# Ignorar arquivos temporários do Python
+__pycache__/
+*.pyc
