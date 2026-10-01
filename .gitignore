@@ -8,3 +8,6 @@ env/
 # Ignorar arquivos temporários do Python
 __pycache__/
 *.pyc
+
+#Ignorar arquivo com as credenciais
+credenciais.txt

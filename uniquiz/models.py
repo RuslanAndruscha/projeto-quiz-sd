@@ -39,7 +39,7 @@ class Usuario(models.Model):
          (2, 'Professor')
       ]
 
-   id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+   id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
    primeiro_nome = models.CharField(max_length=100)
    ultimo_nome = models.CharField(max_length=100)
    email = models.CharField(max_length=100, unique=True)
