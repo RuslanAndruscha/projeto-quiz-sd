@@ -48,5 +48,5 @@ class Usuario(models.Model):
    credencial = models.IntegerField(choices=CREDENCIAL, default=1)
 
    def __str__(self):
-      return self.nome
+      return self.primeiro_nome
 
