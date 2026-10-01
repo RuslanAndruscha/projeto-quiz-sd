@@ -1,5 +1,7 @@
 from django.db import models
 
+import uuid
+
 # Create your models here.
 class Categoria(models.Model):
    nome = models.CharField(max_length=100)
@@ -31,4 +33,20 @@ class Alternativa(models.Model):
    def __str__(self):
       return self.texto
 
+class Usuario(models.Model):
+   CREDENCIAL = [
+         (1, 'Aluno'),
+         (2, 'Professor')
+      ]
+
+   id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+   primeiro_nome = models.CharField(max_length=100)
+   ultimo_nome = models.CharField(max_length=100)
+   email = models.CharField(max_length=100, unique=True)
+   senha = models.CharField(max_length=50)
+   data_criacao = models.DateTimeField(auto_now_add=True, editable=False)
+   credencial = models.IntegerField(choices=CREDENCIAL, default=1)
+
+   def __str__(self):
+      return self.nome
 
