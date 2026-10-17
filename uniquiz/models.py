@@ -40,8 +40,8 @@ class Usuario(models.Model):
       ]
 
    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
-   primeiro_nome = models.CharField(max_length=100)
-   ultimo_nome = models.CharField(max_length=100)
+   nome = models.CharField(max_length=100)
+   sobrenome = models.CharField(max_length=100)
    email = models.CharField(max_length=100, unique=True)
    senha = models.CharField(max_length=50)
    data_criacao = models.DateTimeField(auto_now_add=True, editable=False)
