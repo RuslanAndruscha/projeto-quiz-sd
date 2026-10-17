@@ -3,7 +3,7 @@ from django.http import HttpResponse
 
 # Create your views here.
 def home(request):
-    return HttpResponse('Página principal.')
+    return render(request, 'uniquiz/home.html')
 
 def login(request):
     return HttpResponse('Página de Login.')
