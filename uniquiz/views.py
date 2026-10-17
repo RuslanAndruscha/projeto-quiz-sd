@@ -6,7 +6,7 @@ def home(request):
     return render(request, 'uniquiz/home.html')
 
 def login(request):
-    return HttpResponse('Página de Login.')
+    return render(request, 'uniquiz/login.html')
 
 def cadastro(request):
-    return HttpResponse('Página de Cadastro.')
+    return render(request , 'uniquiz/cadastro.html')
