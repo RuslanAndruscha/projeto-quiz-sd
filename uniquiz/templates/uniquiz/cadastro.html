@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - UniQuiz</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Variáveis de Cores da Identidade Visual */
+        :root {
+            --red: #ff595e;
+            --yellow: #ffca3a;
+            --green: #8ac926;
+            --blue: #1982c4;
+            --purple: #6a4c93;
+            
+            --bg-light: #f9f9fc;
+            --text-dark: #2d3142;
+            --white: #ffffff;
+        }
+
+        /* Reset Global */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Fundo em tela cheia com gradiente suave */
+        body {
+            background: linear-gradient(135deg, rgba(25, 130, 196, 0.08) 0%, rgba(138, 201, 38, 0.08) 100%);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        /* Card Central do Cadastro */
+        .cadastro-wrapper {
+            background-color: var(--white);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 550px; /* Um pouco mais largo para acomodar os inputs em linha */
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--purple);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo span {
+            color: var(--red);
+        }
+
+        .cadastro-subtitle {
+            color: #555;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        /* Estrutura do Formulário */
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 0.9rem;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: var(--white);
+            color: var(--text-dark);
+        }
+
+        /* Removendo o estilo padrão do select no Windows/Mac para ficar mais clean */
+        .form-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            cursor: pointer;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(138, 201, 38, 0.2);
+        }
+
+        /* Mensagens de Erro/Sucesso do Django */
+        .messages {
+            margin-bottom: 1.5rem;
+        }
+
+        .alert {
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .alert-error {
+            background-color: rgba(255, 89, 94, 0.1);
+            color: var(--red);
+        }
+
+        /* Botão de Envio (Destaque Verde para Cadastro) */
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--white);
+            background-color: var(--green);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--yellow);
+            color: var(--text-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 202, 58, 0.4);
+        }
+
+        /* Link para Login */
+        .login-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            font-size: 0.95rem;
+            color: #555;
+            text-decoration: none;
+        }
+
+        .login-link span {
+            color: var(--blue);
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .login-link:hover span {
+            color: var(--purple);
+        }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cadastro-wrapper">
+        <a href="{% url 'uniquiz:home' %}" class="logo">Uni<span>Quiz</span></a>
+        <p class="cadastro-subtitle">Junte-se à plataforma e gamifique seus estudos</p>
+        
+        <!-- Renderização de mensagens (ex: e-mail já cadastrado) -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-error{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form action="{% url 'uniquiz:cadastro' %}" method="POST">{% csrf_token %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="primeiro_nome">Primeiro Nome</label>
+                    <input type="text" id="primeiro_nome" name="primeiro_nome" placeholder="Ex: João" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ultimo_nome">Último Nome</label>
+                    <input type="text" id="ultimo_nome" name="ultimo_nome" placeholder="Ex: Silva" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail Acadêmico</label>
+                <input type="email" id="email" name="email" placeholder="joao.silva@universidade.edu.br" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="senha">Criar Senha</label>
+                    <input type="password" id="senha" name="senha" placeholder="Mínimo 8 caract." required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmar_senha">Repita a Senha</label>
+                    <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Digite novamente" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="credencial">Você é Aluno ou Professor?</label>
+                <select id="credencial" name="credencial" required>
+                    <!-- Os valores value="1" e value="2" correspondem exatamente ao choices do seu model -->
+                    <option value="" disabled selected>Selecione seu perfil</option>
+                    <option value="1">Aluno</option>
+                    <option value="2">Professor</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-submit">Criar minha conta</button>
+        </form>
+
+        <a href="{% url 'uniquiz:login' %}" class="login-link">
+            Já possui uma conta? <span>Faça login aqui</span>
+        </a>
+    </div>
+
+</body>
+</html>

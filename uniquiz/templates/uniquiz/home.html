@@ -289,13 +289,13 @@
     <!-- Navegação -->
     <header>
         <nav>
-            <a href="#" class="logo">Uni<span>Quiz</span></a>
+            <a href="{% url 'uniquiz:home' %}" class="logo">Uni<span>Quiz</span></a>
             <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
+                <li><a href="{% url 'uniquiz:home' %}">Home</a></li>
                 <li><a href="#sobre">Sobre</a></li>
                 <!-- Links desativados temporariamente com '#' -->
-                <li><a href="#">Login</a></li>
-                <li><a href="#" class="btn-nav-login">Cadastre-se</a></li>
+                <li><a href="{% url 'uniquiz:login' %}">Login</a></li>
+                <li><a href="{% url 'uniquiz:cadastro' %}" class="btn-nav-login">Cadastre-se</a></li>
             </ul>
         </nav>
     </header>
@@ -305,7 +305,7 @@
         <div class="hero-content">
             <h1>Sua jornada acadêmica <span>gamificada</span></h1>
             <p>Aprenda jogando, domine estruturas de dados, hardware e algoritmos, e desafie seus colegas na melhor plataforma de perguntas e respostas focada no Ensino Superior.</p>
-            <a href="#" class="btn-cta">Começar Agora</a>
+            <a href="{% url 'uniquiz:cadastro' %}" class="btn-cta">Começar Agora</a>
         </div>
     </section>
 
