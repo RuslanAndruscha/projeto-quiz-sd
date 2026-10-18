@@ -1,22 +1,25 @@
 from faker import Faker
 from random import randint
-
 from .models import Usuario
-
 
 fake = Faker('pt_BR')
 
-
 def popular_usuario():
+    Usuario.objects.filter(is_superuser=False).delete()
 
-   for i in range(1000):
+    for i in range(50): 
+        primeiro = fake.first_name()
+        ultimo = fake.last_name()
+        username = f"{primeiro.lower()}_{ultimo.lower()}_{randint(100,999)}"
+        
+        Usuario.objects.create_user(
+            username=username,
+            first_name=primeiro,
+            last_name=ultimo,
+            email=fake.unique.email(),
+            password="senha123Padrao", 
+            credencial=randint(1, 2),
+            curso="Engenharia de Computação"
+        )
 
-      Usuario.objects.create(
-         primeiro_nome=fake.first_name(),
-         ultimo_nome=fake.last_name(),
-         email=fake.unique.email(),
-         senha=fake.password(length=10),
-         credencial=randint(1, 2)
-      )
-
-   print('1000 usuarios criados com sucesso!')
+    print('Usuários criados com sucesso e com senhas seguras!')
