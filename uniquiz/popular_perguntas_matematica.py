@@ -88,7 +88,7 @@ def criar_divisao(categoria):
     criar_alternativas(pergunta, resposta)
 
 
-def popular_perguntas(quantidade=1000):
+def popular_perguntas(quantidade=100):
     categoria, criada = Categoria.objects.get_or_create(
         nome="Matemática",
         defaults={
