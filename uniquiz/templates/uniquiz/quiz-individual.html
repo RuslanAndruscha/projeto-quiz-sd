@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Individual - UniQuiz</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Variáveis de Cores da Identidade Visual */
+        :root {
+            --red: #ff595e;
+            --yellow: #ffca3a;
+            --green: #8ac926;
+            --blue: #1982c4;
+            --purple: #6a4c93;
+
+            --bg-light: #f9f9fc;
+            --text-dark: #2d3142;
+            --text-muted: #555a6e;
+            --border-soft: #e2e5ef;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(25, 130, 196, 0.08) 0%, rgba(138, 201, 38, 0.08) 100%);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Cabeçalho */
+        .site-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: var(--white);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .site-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0.9rem 5%;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--purple);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .logo span {
+            color: var(--red);
+        }
+
+        .session-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .score-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background-color: rgba(255, 202, 58, 0.24);
+            border: 1px solid rgba(255, 202, 58, 0.75);
+            color: var(--text-dark);
+            padding: 0.4rem 0.95rem;
+            border-radius: 25px;
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
+        .score-pill svg {
+            width: 16px;
+            height: 16px;
+            color: #d99b00;
+        }
+
+        .timer-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background-color: rgba(25, 130, 196, 0.12);
+            color: var(--blue);
+            padding: 0.4rem 0.95rem;
+            border-radius: 25px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-pill svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .inline-form {
+            display: inline-flex;
+        }
+
+        .btn-end-session {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0.4rem 1.05rem;
+            border-radius: 25px;
+            background-color: rgba(255, 89, 94, 0.1);
+            color: var(--red);
+            border: 2px solid transparent;
+            font: inherit;
+            font-size: 0.86rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .btn-end-session:hover {
+            background-color: var(--red);
+            color: var(--white);
+        }
+
+        /* Conteúdo Principal */
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2.25rem 5% 4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Mensagens */
+        .messages {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .alert {
+            padding: 0.85rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            text-align: center;
+            background-color: rgba(25, 130, 196, 0.12);
+            color: var(--blue);
+        }
+
+        .alert-error {
+            background-color: rgba(255, 89, 94, 0.12);
+            color: var(--red);
+        }
+
+        .alert-warning {
+            background-color: rgba(255, 202, 58, 0.28);
+            color: #7c5600;
+        }
+
+        /* Progresso */
+        .progress-wrapper {
+            background-color: var(--white);
+            border-radius: 16px;
+            padding: 1.1rem 1.4rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .progress-meta strong {
+            color: var(--purple);
+        }
+
+        progress.quiz-progress {
+            width: 100%;
+            height: 10px;
+            border: none;
+            border-radius: 999px;
+            overflow: hidden;
+            accent-color: var(--blue);
+            background-color: var(--border-soft);
+        }
+
+        progress.quiz-progress::-webkit-progress-bar {
+            background-color: var(--border-soft);
+            border-radius: 999px;
+        }
+
+        progress.quiz-progress::-webkit-progress-value {
+            background: linear-gradient(90deg, var(--blue), var(--green));
+            border-radius: 999px;
+        }
+
+        progress.quiz-progress::-moz-progress-bar {
+            background: linear-gradient(90deg, var(--blue), var(--green));
+            border-radius: 999px;
+        }
+
+        /* Card da Pergunta */
+        .quiz-card {
+            background-color: var(--white);
+            border-radius: 22px;
+            padding: 2.25rem;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
+            border-top: 6px solid var(--blue);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .question-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 0.28rem 0.78rem;
+            border-radius: 20px;
+        }
+
+        .tag-category {
+            background-color: rgba(106, 76, 147, 0.12);
+            color: var(--purple);
+        }
+
+        .tag-level-1 {
+            background-color: rgba(138, 201, 38, 0.18);
+            color: #456d09;
+        }
+
+        .tag-level-2 {
+            background-color: rgba(255, 202, 58, 0.28);
+            color: #7c5600;
+        }
+
+        .tag-level-3 {
+            background-color: rgba(255, 89, 94, 0.15);
+            color: #b8252a;
+        }
+
+        .tag-points {
+            background-color: rgba(25, 130, 196, 0.12);
+            color: var(--blue);
+        }
+
+        .question-heading {
+            font-size: clamp(1.25rem, 2.8vw, 1.55rem);
+            color: var(--text-dark);
+            line-height: 1.38;
+        }
+
+        /* Alternativas como Choice Cards */
+        .alternatives-fieldset {
+            border: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            clip-path: inset(50%);
+            overflow: hidden;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            border: 0;
+            white-space: nowrap;
+        }
+
+        .alt-option {
+            display: grid;
+            grid-template-columns: auto auto 1fr auto;
+            align-items: center;
+            gap: 0.85rem;
+            min-height: 60px;
+            padding: 0.9rem 1.15rem;
+            border-radius: 14px;
+            border: 2px solid var(--border-soft);
+            background-color: var(--bg-light);
+            cursor: pointer;
+            transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .alt-option:hover {
+            border-color: var(--blue);
+            background-color: rgba(25, 130, 196, 0.05);
+            transform: translateX(3px);
+        }
+
+        .alt-option input[type="radio"] {
+            accent-color: var(--blue);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .alt-option:has(input[type="radio"]:checked) {
+            border-color: var(--blue);
+            background-color: rgba(25, 130, 196, 0.12);
+            box-shadow: 0 4px 14px rgba(25, 130, 196, 0.16);
+        }
+
+        .alt-letter {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .alt-letter--0 { background-color: var(--blue); }
+        .alt-letter--1 { background-color: var(--purple); }
+        .alt-letter--2 { background-color: var(--yellow); color: var(--text-dark); }
+        .alt-letter--3 { background-color: var(--red); }
+
+        .alt-text {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            word-break: break-word;
+        }
+
+        /* Estados de Feedback */
+        .feedback-box {
+            border-radius: 16px;
+            padding: 1.25rem 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .feedback-box--correct {
+            background-color: rgba(138, 201, 38, 0.18);
+            border: 2px solid var(--green);
+            color: #365706;
+        }
+
+        .feedback-box--wrong {
+            background-color: rgba(255, 89, 94, 0.12);
+            border: 2px solid var(--red);
+            color: #961d22;
+        }
+
+        .feedback-title {
+            font-size: 1.12rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback-detail {
+            font-size: 0.9rem;
+            margin-top: 0.2rem;
+        }
+
+        .feedback-points {
+            font-size: 1.15rem;
+            font-weight: 700;
+            padding: 0.35rem 0.9rem;
+            border-radius: 25px;
+            background-color: var(--white);
+            color: var(--text-dark);
+        }
+
+        .alt-feedback-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .alt-feedback-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 0.85rem;
+            min-height: 58px;
+            padding: 0.85rem 1.1rem;
+            border-radius: 14px;
+            border: 2px solid var(--border-soft);
+            background-color: var(--bg-light);
+        }
+
+        .alt-feedback-item--correct {
+            border-color: var(--green);
+            background-color: rgba(138, 201, 38, 0.16);
+        }
+
+        .alt-feedback-item--wrong {
+            border-color: var(--red);
+            background-color: rgba(255, 89, 94, 0.12);
+        }
+
+        .status-chip {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 0.22rem 0.65rem;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .status-chip--correct {
+            background-color: var(--green);
+            color: var(--white);
+        }
+
+        .status-chip--wrong {
+            background-color: var(--red);
+            color: var(--white);
+        }
+
+        /* Botões Principais */
+        .quiz-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .quiz-actions--spaced {
+            margin-top: 1.5rem;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55rem;
+            min-height: 52px;
+            padding: 0.85rem 1.8rem;
+            border: none;
+            border-radius: 14px;
+            background-color: var(--blue);
+            color: var(--white);
+            font: inherit;
+            font-size: 1.02rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(25, 130, 196, 0.28);
+            transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--purple);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(106, 76, 147, 0.34);
+        }
+
+        .btn-green {
+            background-color: var(--green);
+            box-shadow: 0 8px 20px rgba(138, 201, 38, 0.32);
+        }
+
+        .btn-green:hover {
+            background-color: var(--yellow);
+            color: var(--text-dark);
+            box-shadow: 0 10px 24px rgba(255, 202, 58, 0.42);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            padding: 0.85rem 1.4rem;
+            border-radius: 14px;
+            border: 2px solid var(--border-soft);
+            background-color: var(--white);
+            color: var(--text-dark);
+            text-decoration: none;
+            font: inherit;
+            font-size: 0.96rem;
+            font-weight: 600;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+
+        /* Tela de Resultado Final */
+        .result-hero {
+            background-color: var(--white);
+            border-radius: 22px;
+            padding: 2.4rem 2rem;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
+            border-top: 6px solid var(--green);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .result-trophy {
+            width: 72px;
+            height: 72px;
+            border-radius: 20px;
+            background-color: rgba(255, 202, 58, 0.24);
+            color: #c78d00;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-trophy svg {
+            width: 38px;
+            height: 38px;
+        }
+
+        .result-hero h1 {
+            font-size: clamp(1.7rem, 3.6vw, 2.25rem);
+            color: var(--text-dark);
+        }
+
+        .result-hero h1 span {
+            color: var(--purple);
+        }
+
+        .result-stats {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .result-stat {
+            background-color: var(--bg-light);
+            border-radius: 14px;
+            padding: 1rem;
+            border: 1px solid var(--border-soft);
+        }
+
+        .result-stat-value {
+            display: block;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .result-stat-value--green { color: #4f7b0d; }
+        .result-stat-value--blue { color: var(--blue); }
+
+        .result-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .result-actions {
+            display: flex;
+            justify-content: center;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+
+        /* Revisão das Questões */
+        .review-card {
+            background-color: var(--white);
+            border-radius: 20px;
+            padding: 1.85rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .review-card h2 {
+            font-size: 1.3rem;
+            color: var(--purple);
+        }
+
+        .review-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .review-item {
+            padding: 1.05rem 1.2rem;
+            border-radius: 14px;
+            background-color: var(--bg-light);
+            border-left: 5px solid var(--green);
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .review-item--wrong {
+            border-left-color: var(--red);
+        }
+
+        .review-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .review-question {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.98rem;
+        }
+
+        .review-answer {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        .review-answer strong {
+            color: #456d09;
+        }
+
+        /* Rodapé */
+        .site-footer {
+            background-color: var(--purple);
+            color: var(--white);
+            padding: 1.75rem 5%;
+            text-align: center;
+        }
+
+        .footer-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .footer-inner a {
+            color: var(--yellow);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible {
+            outline: 3px solid var(--purple);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 720px) {
+            .result-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .quiz-card {
+                padding: 1.5rem;
+            }
+
+            .footer-inner {
+                justify-content: center;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Barra da sessão de quiz">
+            <a href="{% url 'uniquiz:tela-aluno' %}" class="logo">Uni<span>Quiz</span></a>
+
+            <div class="session-bar">
+                <div class="score-pill" aria-label="Pontuação nesta sessão">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+                    </svg>
+                    <span>Sessão: {{ sessao.pontuacao_final }} pts</span>
+                </div>
+
+                {% if modo == 'pergunta' %}
+                    <div class="timer-pill" aria-label="Tempo decorrido nesta pergunta">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        <span id="question-timer">00:00</span>
+                    </div>
+
+                    <form class="inline-form" action="{% url 'uniquiz:encerrar-individual' sessao.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-end-session">Encerrar</button>
+                    </form>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% if messages %}
+            <div class="messages" role="status" aria-live="polite">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if modo == 'pergunta' %}
+            <!-- Barra de Progresso -->
+            <section class="progress-wrapper" aria-label="Progresso do quiz">
+                <div class="progress-meta">
+                    <span>Pergunta <strong>{{ numero_atual }}</strong> de <strong>{{ total_perguntas }}</strong></span>
+                    <span>{{ progresso_percentual }}% concluído</span>
+                </div>
+                <progress class="quiz-progress" value="{{ numero_atual|add:'-1' }}" max="{{ total_perguntas }}"></progress>
+            </section>
+
+            <!-- Card de Pergunta Ativa -->
+            <article class="quiz-card">
+                <div class="question-meta">
+                    <span class="tag tag-category">{{ pergunta.categoria.nome }}</span>
+                    <span class="tag tag-level-{{ pergunta.nivel }}">{{ pergunta.get_nivel_display }}</span>
+                    <span class="tag tag-points">Vale {{ pergunta.pontuacao }} pts</span>
+                    {% if pergunta.autor %}
+                        <span class="tag tag-category">Prof. {{ pergunta.autor.first_name|default:pergunta.autor.username }} {{ pergunta.autor.last_name }}</span>
+                    {% endif %}
+                </div>
+
+                <h1 class="question-heading">{{ pergunta.texto_pergunta }}</h1>
+
+                <form id="answer-form" action="{% url 'uniquiz:responder-individual' sessao.id %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="pergunta_id" value="{{ pergunta.id }}">
+
+                    <fieldset class="alternatives-fieldset">
+                        <legend class="visually-hidden">Escolha uma das alternativas</legend>
+
+                        {% for alt in alternativas %}
+                            <label class="alt-option">
+                                <input type="radio" name="alternativa_id" value="{{ alt.id }}" required>
+                                <span class="alt-letter alt-letter--{{ forloop.counter0 }}" aria-hidden="true">
+                                    {% if forloop.counter0 == 0 %}A{% elif forloop.counter0 == 1 %}B{% elif forloop.counter0 == 2 %}C{% else %}D{% endif %}
+                                </span>
+                                <span class="alt-text">{{ alt.texto }}</span>
+                            </label>
+                        {% endfor %}
+                    </fieldset>
+
+                    <div class="quiz-actions quiz-actions--spaced">
+                        <button type="submit" class="btn-primary btn-green" id="btn-confirm-answer">
+                            <span>Confirmar Resposta</span>
+                        </button>
+                    </div>
+                </form>
+            </article>
+
+        {% elif modo == 'feedback' %}
+            <!-- Barra de Progresso -->
+            <section class="progress-wrapper" aria-label="Progresso do quiz">
+                <div class="progress-meta">
+                    <span>Pergunta <strong>{{ numero_atual }}</strong> de <strong>{{ total_perguntas }}</strong></span>
+                    <span>{{ progresso_percentual }}% concluído</span>
+                </div>
+                <progress class="quiz-progress" value="{{ numero_atual }}" max="{{ total_perguntas }}"></progress>
+            </section>
+
+            <!-- Card de Feedback Imediato -->
+            <article class="quiz-card">
+                <div class="question-meta">
+                    <span class="tag tag-category">{{ pergunta.categoria.nome }}</span>
+                    <span class="tag tag-level-{{ pergunta.nivel }}">{{ pergunta.get_nivel_display }}</span>
+                    <span class="tag tag-points">{{ feedback.tempo_resposta }}s</span>
+                    {% if pergunta.autor %}
+                        <span class="tag tag-category">Prof. {{ pergunta.autor.first_name|default:pergunta.autor.username }} {{ pergunta.autor.last_name }}</span>
+                    {% endif %}
+                </div>
+
+                <h1 class="question-heading">{{ pergunta.texto_pergunta }}</h1>
+
+                <div class="feedback-box {% if feedback.acertou %}feedback-box--correct{% else %}feedback-box--wrong{% endif %}" role="status" aria-live="polite">
+                    <div>
+                        <p class="feedback-title">
+                            {% if feedback.acertou %}
+                                &#10003; Resposta Correta!
+                            {% else %}
+                                &#10005; Resposta Incorreta
+                            {% endif %}
+                        </p>
+                        <p class="feedback-detail">
+                            {% if feedback.acertou %}
+                                Excelente! Você acertou em {{ feedback.tempo_resposta }}s e acumulou pontos no seu perfil.
+                            {% else %}
+                                A alternativa correta era: <strong>{{ feedback.alternativa_correta_texto }}</strong>.
+                            {% endif %}
+                        </p>
+                    </div>
+                    <span class="feedback-points">+{{ feedback.pontos_ganhos }} pts</span>
+                </div>
+
+                <ul class="alt-feedback-list">
+                    {% for alt in alternativas %}
+                        <li class="alt-feedback-item {% if alt.id == feedback.alternativa_correta_id %}alt-feedback-item--correct{% elif alt.id == feedback.alternativa_escolhida_id %}alt-feedback-item--wrong{% endif %}">
+                            <span class="alt-letter alt-letter--{{ forloop.counter0 }}" aria-hidden="true">
+                                {% if forloop.counter0 == 0 %}A{% elif forloop.counter0 == 1 %}B{% elif forloop.counter0 == 2 %}C{% else %}D{% endif %}
+                            </span>
+                            <span class="alt-text">{{ alt.texto }}</span>
+                            {% if alt.id == feedback.alternativa_correta_id %}
+                                <span class="status-chip status-chip--correct">Correta</span>
+                            {% elif alt.id == feedback.alternativa_escolhida_id %}
+                                <span class="status-chip status-chip--wrong">Sua resposta</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <form class="quiz-actions" action="{% url 'uniquiz:avancar-individual' sessao.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary" autofocus>
+                        {% if feedback.sessao_concluida %}
+                            Ver Resultado Final &rarr;
+                        {% else %}
+                            Próxima Pergunta &rarr;
+                        {% endif %}
+                    </button>
+                </form>
+            </article>
+
+        {% else %}
+            <!-- Tela de Resultado Final -->
+            <section class="result-hero" aria-labelledby="result-title">
+                <div class="result-trophy" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                        <path d="M4 22h16"/>
+                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                    </svg>
+                </div>
+
+                <h1 id="result-title">Sessão <span>Finalizada!</span></h1>
+                <p>Confira seu desempenho neste treino individual e revise as respostas abaixo.</p>
+
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <span class="result-stat-value result-stat-value--blue">{{ sessao.pontuacao_final }} pts</span>
+                        <span class="result-stat-label">Pontos na Sessão</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="result-stat-value result-stat-value--green">{{ total_acertos }}/{{ total_respostas }}</span>
+                        <span class="result-stat-label">Acertos</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="result-stat-value">{{ taxa_acerto }}%</span>
+                        <span class="result-stat-label">Aproveitamento</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="result-stat-value">{{ tempo_medio }}s</span>
+                        <span class="result-stat-label">Tempo Médio</span>
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <a href="{% url 'uniquiz:modo-individual' %}" class="btn-primary btn-green">Jogar Novamente</a>
+                    <a href="{% url 'uniquiz:tela-aluno' %}" class="btn-secondary">Voltar para Área do Aluno</a>
+                </div>
+            </section>
+
+            {% if revisao %}
+                <section class="review-card" aria-labelledby="review-title">
+                    <h2 id="review-title">Revisão das Respostas</h2>
+                    <ul class="review-list">
+                        {% for item in revisao %}
+                            <li class="review-item {% if not item.acertou %}review-item--wrong{% endif %}">
+                                <div class="review-top">
+                                    <span class="tag tag-category">#{{ item.numero }} • {{ item.pergunta.categoria.nome }}</span>
+                                    <span class="status-chip {% if item.acertou %}status-chip--correct{% else %}status-chip--wrong{% endif %}">
+                                        {% if item.acertou %}&#10003; Acertou (+{{ item.pergunta.pontuacao }} pts){% else %}&#10005; Errou{% endif %} • {{ item.tempo }}s
+                                    </span>
+                                </div>
+                                <p class="review-question">{{ item.pergunta.texto_pergunta }}</p>
+                                <p class="review-answer">Gabarito: <strong>{{ item.resposta_correta }}</strong></p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endif %}
+        {% endif %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 UniQuiz. Todos os direitos reservados.</span>
+            <a href="{% url 'uniquiz:modo-individual' %}">Configurar novo quiz</a>
+        </div>
+    </footer>
+
+    <script>
+        (() => {
+            const timerEl = document.getElementById('question-timer');
+            if (timerEl) {
+                let seconds = 0;
+                const formatTime = (s) => {
+                    const m = String(Math.floor(s / 60)).padStart(2, '0');
+                    const rem = String(s % 60).padStart(2, '0');
+                    return `${m}:${rem}`;
+                };
+                setInterval(() => {
+                    seconds += 1;
+                    timerEl.textContent = formatTime(seconds);
+                }, 1000);
+            }
+
+            const answerForm = document.getElementById('answer-form');
+            const confirmBtn = document.getElementById('btn-confirm-answer');
+            if (answerForm && confirmBtn) {
+                answerForm.addEventListener('submit', () => {
+                    if (answerForm.checkValidity()) {
+                        confirmBtn.disabled = true;
+                    }
+                });
+            }
+        })();
+    </script>
+
+</body>
+</html>

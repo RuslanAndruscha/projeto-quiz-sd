@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do Aluno - UniQuiz</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Variáveis de Cores da Identidade Visual */
+        :root {
+            --red: #ff595e;
+            --yellow: #ffca3a;
+            --green: #8ac926;
+            --blue: #1982c4;
+            --purple: #6a4c93;
+
+            --bg-light: #f9f9fc;
+            --text-dark: #2d3142;
+            --text-muted: #555a6e;
+            --border-soft: #e6e8f0;
+            --white: #ffffff;
+        }
+
+        /* Reset Global */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(25, 130, 196, 0.08) 0%, rgba(138, 201, 38, 0.08) 100%);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Cabeçalho de Navegação */
+        .site-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: var(--white);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .site-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.9rem 5%;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--purple);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .logo span {
+            color: var(--red);
+        }
+
+        .user-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .student-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-soft);
+            padding: 0.35rem 0.9rem 0.35rem 0.45rem;
+            border-radius: 30px;
+        }
+
+        .student-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: var(--purple);
+            color: var(--white);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .student-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .student-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .student-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .points-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background-color: rgba(255, 202, 58, 0.22);
+            color: var(--text-dark);
+            border: 1px solid rgba(255, 202, 58, 0.7);
+            padding: 0.4rem 0.9rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .points-badge svg {
+            width: 16px;
+            height: 16px;
+            color: #d99b00;
+            flex-shrink: 0;
+        }
+
+        .logout-form {
+            display: inline-flex;
+        }
+
+        .btn-logout {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0.45rem 1.2rem;
+            border-radius: 25px;
+            background-color: rgba(255, 89, 94, 0.1);
+            color: var(--red);
+            text-decoration: none;
+            font: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+        }
+
+        .btn-logout:hover {
+            background-color: var(--red);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        /* Conteúdo Principal */
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 3rem 5% 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2.5rem;
+        }
+
+        /* Boas-vindas e Resumo do Aluno */
+        .welcome-section {
+            text-align: center;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .welcome-tag {
+            display: inline-block;
+            background-color: rgba(106, 76, 147, 0.1);
+            color: var(--purple);
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.35rem 1rem;
+            border-radius: 25px;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-section h1 {
+            font-size: clamp(1.9rem, 4vw, 2.75rem);
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 0.85rem;
+        }
+
+        .welcome-section h1 span {
+            color: var(--purple);
+        }
+
+        .welcome-section p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        /* Mensagens do Django */
+        .messages {
+            max-width: 720px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .alert {
+            padding: 0.85rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: center;
+            background-color: rgba(25, 130, 196, 0.12);
+            color: var(--blue);
+        }
+
+        .alert-error {
+            background-color: rgba(255, 89, 94, 0.12);
+            color: var(--red);
+        }
+
+        .alert-success {
+            background-color: rgba(138, 201, 38, 0.16);
+            color: #4f7b0d;
+        }
+
+        /* Faixa de Informações Rápidas do Aluno */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            max-width: 820px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            background-color: var(--white);
+            border-radius: 15px;
+            padding: 1.1rem 1.25rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            border-left: 4px solid var(--purple);
+        }
+
+        .stat-item.stat-points {
+            border-left-color: var(--yellow);
+        }
+
+        .stat-item.stat-status {
+            border-left-color: var(--green);
+        }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background-color: rgba(106, 76, 147, 0.1);
+            color: var(--purple);
+        }
+
+        .stat-points .stat-icon {
+            background-color: rgba(255, 202, 58, 0.2);
+            color: #c78d00;
+        }
+
+        .stat-status .stat-icon {
+            background-color: rgba(138, 201, 38, 0.18);
+            color: #5b8b11;
+        }
+
+        .stat-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* Seção de Seleção de Modos */
+        .modes-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .section-heading {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--purple);
+            position: relative;
+            padding-bottom: 0.75rem;
+        }
+
+        .section-heading::after {
+            content: '';
+            width: 60px;
+            height: 4px;
+            background-color: var(--yellow);
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        .modes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 2rem;
+            align-items: stretch;
+        }
+
+        /* Cards de Modo de Jogo */
+        .mode-card {
+            container-type: inline-size;
+            background-color: var(--white);
+            border-radius: 20px;
+            padding: 2.25rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            border: 2px solid transparent;
+            border-top: 6px solid var(--blue);
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            gap: 1.25rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .mode-card--individual {
+            border-top-color: var(--blue);
+        }
+
+        .mode-card--individual:hover,
+        .mode-card--individual:focus-within {
+            transform: translateY(-6px);
+            border-color: var(--blue);
+            box-shadow: 0 16px 36px rgba(25, 130, 196, 0.16);
+        }
+
+        .mode-card--duel {
+            border-top-color: var(--red);
+        }
+
+        .mode-card--duel:hover,
+        .mode-card--duel:focus-within {
+            transform: translateY(-6px);
+            border-color: var(--red);
+            box-shadow: 0 16px 36px rgba(255, 89, 94, 0.18);
+        }
+
+        /* Ícone / Mídia do Card */
+        .mode-media {
+            width: 68px;
+            height: 68px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mode-card--individual .mode-media {
+            background-color: rgba(25, 130, 196, 0.12);
+            color: var(--blue);
+        }
+
+        .mode-card--duel .mode-media {
+            background-color: rgba(255, 89, 94, 0.12);
+            color: var(--red);
+        }
+
+        .mode-media svg {
+            width: 34px;
+            height: 34px;
+        }
+
+        /* Cabeçalho do Card */
+        .mode-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .mode-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .mode-card--individual .mode-badge {
+            background-color: rgba(138, 201, 38, 0.18);
+            color: #4f7b0d;
+        }
+
+        .mode-card--duel .mode-badge {
+            background-color: rgba(255, 202, 58, 0.28);
+            color: var(--text-dark);
+        }
+
+        .mode-header h3 {
+            font-size: 1.65rem;
+            color: var(--text-dark);
+            line-height: 1.25;
+        }
+
+        /* Conteúdo do Card */
+        .mode-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+        }
+
+        .mode-content p {
+            color: var(--text-muted);
+            font-size: 0.98rem;
+        }
+
+        .mode-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .mode-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            font-size: 0.92rem;
+            color: var(--text-dark);
+        }
+
+        .mode-features svg {
+            width: 18px;
+            height: 18px;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        .mode-card--individual .mode-features svg {
+            color: var(--green);
+        }
+
+        .mode-card--duel .mode-features svg {
+            color: var(--purple);
+        }
+
+        /* Rodapé / Ação do Card */
+        .mode-footer {
+            padding-top: 0.5rem;
+        }
+
+        .btn-mode {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            width: 100%;
+            min-height: 52px;
+            padding: 0.95rem 1.5rem;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .btn-mode svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.25s ease;
+        }
+
+        .btn-mode:hover svg {
+            transform: translateX(4px);
+        }
+
+        .btn-mode--individual {
+            background-color: var(--blue);
+            box-shadow: 0 6px 18px rgba(25, 130, 196, 0.3);
+        }
+
+        .btn-mode--individual:hover {
+            background-color: var(--purple);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(106, 76, 147, 0.35);
+        }
+
+        .btn-mode--duel {
+            background-color: var(--red);
+            box-shadow: 0 6px 18px rgba(255, 89, 94, 0.32);
+        }
+
+        .btn-mode--duel:hover {
+            background-color: var(--yellow);
+            color: var(--text-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(255, 202, 58, 0.45);
+        }
+
+        /* Adaptação interna do card conforme espaço disponível */
+        @container (max-width: 360px) {
+            .mode-header h3 {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* Rodapé da Página */
+        .site-footer {
+            background-color: var(--purple);
+            color: var(--white);
+            padding: 1.75rem 5%;
+            text-align: center;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .footer-inner a {
+            color: var(--yellow);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.25s ease;
+        }
+
+        .footer-inner a:hover {
+            color: var(--white);
+        }
+
+        /* Acessibilidade: Foco Visível */
+        a:focus-visible,
+        button:focus-visible {
+            outline: 3px solid var(--purple);
+            outline-offset: 3px;
+        }
+
+        /* Responsividade */
+        @media (max-width: 860px) {
+            .modes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .site-nav {
+                padding: 0.85rem 4%;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .student-info {
+                display: none;
+            }
+
+            .student-pill {
+                padding: 0.25rem;
+            }
+
+            main {
+                padding: 2rem 4% 3rem;
+            }
+
+            .mode-card {
+                padding: 1.75rem;
+            }
+
+            .footer-inner {
+                justify-content: center;
+            }
+        }
+
+        /* Preferência por redução de movimento */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho do Aluno -->
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Navegação principal do aluno">
+            <a href="{% url 'uniquiz:home' %}" class="logo">Uni<span>Quiz</span></a>
+
+            <div class="user-bar">
+                <div class="points-badge" aria-label="Pontuação total">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+                    </svg>
+                    <span>{% if user.is_authenticated %}{{ user.pontuacao_total }}{% else %}0{% endif %} pts</span>
+                </div>
+
+                <div class="student-pill">
+                    <span class="student-avatar" aria-hidden="true">
+                        {% if user.is_authenticated and user.first_name %}
+                            {{ user.first_name|slice:":1" }}
+                        {% elif user.is_authenticated %}
+                            {{ user.username|slice:":1" }}
+                        {% else %}
+                            A
+                        {% endif %}
+                    </span>
+                    <div class="student-info">
+                        <span class="student-name">
+                            {% if user.is_authenticated %}
+                                {{ user.first_name|default:user.username }}{% if user.last_name %} {{ user.last_name }}{% endif %}
+                            {% else %}
+                                Aluno UniQuiz
+                            {% endif %}
+                        </span>
+                        <span class="student-role">Perfil Aluno</span>
+                    </div>
+                </div>
+
+                <form class="logout-form" action="{% url 'uniquiz:logout' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout">Sair</button>
+                </form>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main>
+        <section class="welcome-section" aria-labelledby="welcome-title">
+            <span class="welcome-tag">Área do Aluno</span>
+            <h1 id="welcome-title">
+                Olá, <span>{% if user.is_authenticated %}{{ user.first_name|default:user.username }}{% else %}Estudante{% endif %}</span>! Pronto para jogar?
+            </h1>
+            <p>Escolha como deseja testar seus conhecimentos hoje: treine no seu próprio ritmo ou enfrente um colega em uma disputa 1 vs 1.</p>
+        </section>
+
+        <!-- Renderização de mensagens do Django -->
+        {% if messages %}
+            <div class="messages" role="status" aria-live="polite">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Resumo Rápido do Perfil -->
+        <section class="stats-bar" aria-label="Resumo do perfil do aluno">
+            <div class="stat-item">
+                <span class="stat-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                    </svg>
+                </span>
+                <div>
+                    <span class="stat-label">Curso</span>
+                    <span class="stat-value">{% if user.is_authenticated %}{{ user.curso }}{% else %}Engenharia de Computação{% endif %}</span>
+                </div>
+            </div>
+
+            <div class="stat-item stat-points">
+                <span class="stat-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                        <path d="M4 22h16"/>
+                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                    </svg>
+                </span>
+                <div>
+                    <span class="stat-label">Pontuação Acumulada</span>
+                    <span class="stat-value">{% if user.is_authenticated %}{{ user.pontuacao_total }}{% else %}0{% endif %} pontos</span>
+                </div>
+            </div>
+
+            <div class="stat-item stat-status">
+                <span class="stat-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </span>
+                <div>
+                    <span class="stat-label">Modos Disponíveis</span>
+                    <span class="stat-value">Individual &amp; 1 vs 1</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seleção de Modos de Jogo -->
+        <section class="modes-section" aria-labelledby="modes-title">
+            <h2 id="modes-title" class="section-heading">Selecione o Modo de Jogo</h2>
+
+            <div class="modes-grid">
+                <!-- Card: Modo Individual -->
+                <article class="mode-card mode-card--individual">
+                    <div class="mode-media" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+
+                    <header class="mode-header">
+                        <span class="mode-badge">Treino Solo</span>
+                        <h3>Modo Individual</h3>
+                    </header>
+
+                    <div class="mode-content">
+                        <p>Pratique no seu próprio ritmo respondendo perguntas das disciplinas do curso, consolidando o aprendizado e somando pontos no seu perfil.</p>
+                        <ul class="mode-features">
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Sessões focadas com questões de nível Fácil, Médio e Difícil</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Feedback imediato para reforçar o conteúdo estudado</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Ideal para revisão antes das provas universitárias</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <footer class="mode-footer">
+                        <a href="{% url 'uniquiz:modo-individual' %}" class="btn-mode btn-mode--individual">
+                            <span>Jogar Modo Individual</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </a>
+                    </footer>
+                </article>
+
+                <!-- Card: Partida 1 vs 1 -->
+                <article class="mode-card mode-card--duel">
+                    <div class="mode-media" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+
+                    <header class="mode-header">
+                        <span class="mode-badge">Competitivo • 1 vs 1</span>
+                        <h3>Partida 1 vs 1</h3>
+                    </header>
+
+                    <div class="mode-content">
+                        <p>Desafie outro universitário em uma disputa direta! Combine agilidade e precisão para vencer a partida competitiva e subir no ranking.</p>
+                        <ul class="mode-features">
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Confronto direto contra outro aluno em tempo real</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Tempo de resposta e acertos definem o vencedor do duelo</span>
+                            </li>
+                            <li>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <span>Acumule vitórias e destaque-se no ranking da universidade</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <footer class="mode-footer">
+                        <!-- Link desativado temporariamente com '#' até a rota de partida 1 vs 1 ser criada -->
+                        <a href="#" class="btn-mode btn-mode--duel">
+                            <span>Iniciar Partida 1 vs 1</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </a>
+                    </footer>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 UniQuiz. Todos os direitos reservados.</span>
+            <a href="{% url 'uniquiz:home' %}">Voltar para a página inicial</a>
+        </div>
+    </footer>
+
+</body>
+</html>

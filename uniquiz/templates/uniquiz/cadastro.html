@@ -144,6 +144,16 @@
             color: var(--red);
         }
 
+        .alert-success {
+            background-color: rgba(138, 201, 38, 0.18);
+            color: #456d09;
+        }
+
+        .alert-warning {
+            background-color: rgba(255, 202, 58, 0.28);
+            color: #7c5600;
+        }
+
         /* Botão de Envio (Destaque Verde para Cadastro) */
         .btn-submit {
             width: 100%;
@@ -202,7 +212,7 @@
         
         <!-- Renderização de mensagens (ex: e-mail já cadastrado) -->
         {% if messages %}
-            <div class="messages">
+            <div class="messages" role="status" aria-live="polite">
                 {% for message in messages %}
                     <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-error{% endif %}">
                         {{ message }}
@@ -215,30 +225,30 @@
             
             <div class="form-row">
                 <div class="form-group">
-                    <label for="nome">Nome</label>
-                    <input type="text" id="primeiro_nome" name="primeiro_nome" placeholder="Ex: João" required autofocus>
+                    <label for="primeiro_nome">Nome</label>
+                    <input type="text" id="primeiro_nome" name="primeiro_nome" value="{{ form_data.primeiro_nome|default:'' }}" placeholder="Ex: João" autocomplete="given-name" required autofocus>
                 </div>
                 
                 <div class="form-group">
-                    <label for="sobrenome">Sobrenome</label>
-                    <input type="text" id="ultimo_nome" name="ultimo_nome" placeholder="Ex: Silva" required>
+                    <label for="ultimo_nome">Sobrenome</label>
+                    <input type="text" id="ultimo_nome" name="ultimo_nome" value="{{ form_data.ultimo_nome|default:'' }}" placeholder="Ex: Silva" autocomplete="family-name" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="email">E-mail Acadêmico</label>
-                <input type="email" id="email" name="email" placeholder="joao.silva@universidade.edu.br" required>
+                <input type="email" id="email" name="email" value="{{ form_data.email|default:'' }}" placeholder="joao.silva@universidade.edu.br" autocomplete="email" required>
             </div>
             
             <div class="form-row">
                 <div class="form-group">
                     <label for="senha">Criar Senha</label>
-                    <input type="password" id="senha" name="senha" placeholder="Mínimo 8 caract." required>
+                    <input type="password" id="senha" name="senha" minlength="8" placeholder="Mínimo 8 caract." autocomplete="new-password" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="confirmar_senha">Repita a Senha</label>
-                    <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Digite novamente" required>
+                    <input type="password" id="confirmar_senha" name="confirmar_senha" minlength="8" placeholder="Digite novamente" autocomplete="new-password" required>
                 </div>
             </div>
 
@@ -246,9 +256,9 @@
                 <label for="credencial">Você é Aluno ou Professor?</label>
                 <select id="credencial" name="credencial" required>
                     <!-- Os valores value="1" e value="2" correspondem exatamente ao choices do seu model -->
-                    <option value="" disabled selected>Selecione seu perfil</option>
-                    <option value="1">Aluno</option>
-                    <option value="2">Professor</option>
+                    <option value="" disabled {% if not form_data.credencial %}selected{% endif %}>Selecione seu perfil</option>
+                    <option value="1" {% if form_data.credencial == '1' %}selected{% endif %}>Aluno</option>
+                    <option value="2" {% if form_data.credencial == '2' %}selected{% endif %}>Professor</option>
                 </select>
             </div>
             

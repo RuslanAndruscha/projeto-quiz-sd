@@ -34,6 +34,14 @@ class Pergunta(models.Model):
     ]
     
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    autor = models.ForeignKey(
+        Usuario,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='perguntas_criadas',
+        limit_choices_to={'credencial': 2},
+    )
     texto_pergunta = models.TextField(max_length=500)
     nivel = models.IntegerField(choices=NIVEIS, default=1)
     pontuacao = models.IntegerField(default=10)

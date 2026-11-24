@@ -6,12 +6,12 @@ class AlternativaInline(admin.TabularInline):
     model = Alternativa
     extra = 0
     min_num = 4
-    max_num = 4 
+    max_num = 4
 
 class PerguntaAdmin(admin.ModelAdmin):
     inlines = [AlternativaInline]
-    list_display = ('texto_pergunta', 'categoria', 'nivel', 'pontuacao')
-    list_filter = ('categoria', 'nivel')
+    list_display = ('texto_pergunta', 'categoria', 'autor', 'nivel', 'pontuacao')
+    list_filter = ('categoria', 'nivel', 'autor')
 
 
 @admin.register(Usuario)
@@ -26,3 +26,4 @@ admin.site.register(Categoria)
 admin.site.register(SessaoIndividual)
 admin.site.register(PartidaCompetitiva)
 admin.site.register(RespostaLog)
+

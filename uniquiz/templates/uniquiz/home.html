@@ -101,6 +101,28 @@
             box-shadow: 0 4px 10px rgba(106, 76, 147, 0.3);
         }
 
+        .logout-form {
+            display: inline;
+        }
+
+        .btn-nav-logout {
+            background-color: rgba(255, 89, 94, 0.12);
+            color: var(--red);
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-nav-logout:hover {
+            background-color: var(--red);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
         /* Estrutura das Seções */
         section {
             min-height: 100vh;
@@ -293,9 +315,24 @@
             <ul class="nav-links">
                 <li><a href="{% url 'uniquiz:home' %}">Home</a></li>
                 <li><a href="#sobre">Sobre</a></li>
-                <!-- Links desativados temporariamente com '#' -->
-                <li><a href="{% url 'uniquiz:login' %}">Login</a></li>
-                <li><a href="{% url 'uniquiz:cadastro' %}" class="btn-nav-login">Cadastre-se</a></li>
+                {% if user.is_authenticated %}
+                    <li>
+                        {% if user.credencial == 2 %}
+                            <a href="{% url 'uniquiz:tela-professor' %}" class="btn-nav-login">Painel Professor</a>
+                        {% else %}
+                            <a href="{% url 'uniquiz:tela-aluno' %}" class="btn-nav-login">Área do Aluno</a>
+                        {% endif %}
+                    </li>
+                    <li>
+                        <form class="logout-form" action="{% url 'uniquiz:logout' %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-nav-logout">Sair</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'uniquiz:login' %}">Login</a></li>
+                    <li><a href="{% url 'uniquiz:cadastro' %}" class="btn-nav-login">Cadastre-se</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>
@@ -305,7 +342,15 @@
         <div class="hero-content">
             <h1>Sua jornada acadêmica <span>gamificada</span></h1>
             <p>Aprenda jogando, domine estruturas de dados, hardware e algoritmos, e desafie seus colegas na melhor plataforma de perguntas e respostas focada no Ensino Superior.</p>
-            <a href="{% url 'uniquiz:cadastro' %}" class="btn-cta">Começar Agora</a>
+            {% if user.is_authenticated %}
+                {% if user.credencial == 2 %}
+                    <a href="{% url 'uniquiz:tela-professor' %}" class="btn-cta">Acessar Painel do Professor</a>
+                {% else %}
+                    <a href="{% url 'uniquiz:tela-aluno' %}" class="btn-cta">Ir para Área do Aluno</a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'uniquiz:cadastro' %}" class="btn-cta">Começar Agora</a>
+            {% endif %}
         </div>
     </section>
 

@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modo Individual - UniQuiz</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Variáveis de Cores da Identidade Visual */
+        :root {
+            --red: #ff595e;
+            --yellow: #ffca3a;
+            --green: #8ac926;
+            --blue: #1982c4;
+            --purple: #6a4c93;
+
+            --bg-light: #f9f9fc;
+            --text-dark: #2d3142;
+            --text-muted: #555a6e;
+            --border-soft: #e2e5ef;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(25, 130, 196, 0.08) 0%, rgba(138, 201, 38, 0.08) 100%);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Cabeçalho */
+        .site-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: var(--white);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .site-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.9rem 5%;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--purple);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .logo span {
+            color: var(--red);
+        }
+
+        .user-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn-back-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            min-height: 40px;
+            padding: 0.4rem 1rem;
+            border-radius: 25px;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-soft);
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .btn-back-nav:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .points-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background-color: rgba(255, 202, 58, 0.22);
+            color: var(--text-dark);
+            border: 1px solid rgba(255, 202, 58, 0.7);
+            padding: 0.4rem 0.9rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .points-badge svg {
+            width: 16px;
+            height: 16px;
+            color: #d99b00;
+            flex-shrink: 0;
+        }
+
+        .logout-form {
+            display: inline-flex;
+        }
+
+        .btn-logout {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0.45rem 1.2rem;
+            border-radius: 25px;
+            background-color: rgba(255, 89, 94, 0.1);
+            color: var(--red);
+            font: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+        }
+
+        .btn-logout:hover {
+            background-color: var(--red);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        /* Conteúdo Principal */
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1060px;
+            margin: 0 auto;
+            padding: 2.5rem 5% 4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .hero-header {
+            text-align: center;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            background-color: rgba(25, 130, 196, 0.12);
+            color: var(--blue);
+            font-weight: 700;
+            font-size: 0.84rem;
+            padding: 0.35rem 1rem;
+            border-radius: 25px;
+            margin-bottom: 0.8rem;
+        }
+
+        .hero-header h1 {
+            font-size: clamp(1.9rem, 4vw, 2.5rem);
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 0.65rem;
+        }
+
+        .hero-header h1 span {
+            color: var(--blue);
+        }
+
+        .hero-header p {
+            color: var(--text-muted);
+            font-size: 1.02rem;
+        }
+
+        /* Mensagens Django */
+        .messages {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .alert {
+            padding: 0.9rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.94rem;
+            font-weight: 600;
+            text-align: center;
+            background-color: rgba(25, 130, 196, 0.12);
+            color: var(--blue);
+        }
+
+        .alert-error {
+            background-color: rgba(255, 89, 94, 0.12);
+            color: var(--red);
+        }
+
+        .alert-warning {
+            background-color: rgba(255, 202, 58, 0.28);
+            color: #7c5600;
+        }
+
+        .alert-success {
+            background-color: rgba(138, 201, 38, 0.18);
+            color: #456d09;
+        }
+
+        /* Banner de Sessão em Andamento */
+        .resume-banner {
+            background-color: var(--white);
+            border-radius: 18px;
+            padding: 1.35rem 1.65rem;
+            box-shadow: 0 8px 25px rgba(25, 130, 196, 0.1);
+            border: 2px solid var(--yellow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .resume-copy h2 {
+            font-size: 1.12rem;
+            color: var(--text-dark);
+            margin-bottom: 0.2rem;
+        }
+
+        .resume-copy p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .resume-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-resume {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0.65rem 1.35rem;
+            border-radius: 12px;
+            background-color: var(--yellow);
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-resume:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 202, 58, 0.45);
+        }
+
+        /* Grade Principal: Configuração + Histórico */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 1.75rem;
+            align-items: start;
+        }
+
+        .panel-card {
+            background-color: var(--white);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            border-top: 6px solid var(--blue);
+            display: flex;
+            flex-direction: column;
+            gap: 1.4rem;
+        }
+
+        .panel-card--history {
+            border-top-color: var(--purple);
+        }
+
+        .panel-card h2 {
+            font-size: 1.35rem;
+            color: var(--purple);
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .panel-card h2::after {
+            content: '';
+            width: 48px;
+            height: 4px;
+            background-color: var(--yellow);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            border-radius: 2px;
+        }
+
+        /* Formulário de Configuração */
+        .setup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.35rem;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .field-group label {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .field-group select {
+            width: 100%;
+            font: inherit;
+            font-size: max(1rem, 1em);
+            min-height: 50px;
+            padding: 0.7rem 2.5rem 0.7rem 0.95rem;
+            border: 2px solid var(--border-soft);
+            border-radius: 12px;
+            background-color: var(--white);
+            color: var(--text-dark);
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555a6e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.95rem center;
+            background-size: 1em;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .field-group select:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(25, 130, 196, 0.2);
+        }
+
+        .choice-fieldset {
+            border: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .choice-fieldset legend {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.65rem;
+        }
+
+        .choice-grid--3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .choice-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            min-height: 50px;
+            padding: 0.65rem 0.75rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-soft);
+            background-color: var(--bg-light);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .choice-card input {
+            accent-color: var(--blue);
+            width: 17px;
+            height: 17px;
+            cursor: pointer;
+        }
+
+        .choice-card:has(input:checked) {
+            border-color: var(--blue);
+            background-color: rgba(25, 130, 196, 0.12);
+        }
+
+        .choice-card--lvl1:has(input:checked) {
+            border-color: var(--green);
+            background-color: rgba(138, 201, 38, 0.16);
+        }
+
+        .choice-card--lvl2:has(input:checked) {
+            border-color: var(--yellow);
+            background-color: rgba(255, 202, 58, 0.25);
+        }
+
+        .choice-card--lvl3:has(input:checked) {
+            border-color: var(--red);
+            background-color: rgba(255, 89, 94, 0.14);
+        }
+
+        .btn-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            width: 100%;
+            min-height: 54px;
+            padding: 0.95rem 1.5rem;
+            border: none;
+            border-radius: 14px;
+            background-color: var(--blue);
+            color: var(--white);
+            font: inherit;
+            font-size: 1.08rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(25, 130, 196, 0.3);
+            transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .btn-start:hover {
+            background-color: var(--purple);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(106, 76, 147, 0.35);
+        }
+
+        .btn-start svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Aviso quando não há perguntas cadastradas */
+        .no-questions-box {
+            background-color: var(--bg-light);
+            border: 2px dashed var(--border-soft);
+            border-radius: 14px;
+            padding: 1.75rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .no-questions-box h3 {
+            color: var(--purple);
+            font-size: 1.1rem;
+        }
+
+        .no-questions-box p {
+            color: var(--text-muted);
+            font-size: 0.94rem;
+        }
+
+        /* Histórico Recente */
+        .history-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.95rem 1.1rem;
+            border-radius: 14px;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-soft);
+        }
+
+        .history-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .history-score {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 0.98rem;
+        }
+
+        .history-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .history-right {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        .accuracy-pill {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.25rem 0.65rem;
+            border-radius: 20px;
+            background-color: rgba(138, 201, 38, 0.18);
+            color: #456d09;
+        }
+
+        .history-link {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--blue);
+            text-decoration: none;
+        }
+
+        .history-link:hover {
+            color: var(--purple);
+            text-decoration: underline;
+        }
+
+        .history-empty {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            background-color: var(--bg-light);
+            padding: 1.25rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        /* Rodapé */
+        .site-footer {
+            background-color: var(--purple);
+            color: var(--white);
+            padding: 1.75rem 5%;
+            text-align: center;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .footer-inner a {
+            color: var(--yellow);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-inner a:hover {
+            color: var(--white);
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid var(--purple);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 880px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .choice-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .panel-card {
+                padding: 1.5rem;
+            }
+
+            .footer-inner {
+                justify-content: center;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Navegação do Modo Individual">
+            <a href="{% url 'uniquiz:home' %}" class="logo">Uni<span>Quiz</span></a>
+
+            <div class="user-bar">
+                <a href="{% url 'uniquiz:tela-aluno' %}" class="btn-back-nav">&larr; Modos de Jogo</a>
+
+                <div class="points-badge" aria-label="Pontuação total">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>
+                    </svg>
+                    <span>{{ user.pontuacao_total }} pts</span>
+                </div>
+
+                <form class="logout-form" action="{% url 'uniquiz:logout' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout">Sair</button>
+                </form>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero-header" aria-labelledby="page-title">
+            <span class="hero-tag">Treino Solo • Modo Individual</span>
+            <h1 id="page-title">Configure seu <span>Quiz Individual</span></h1>
+            <p>Escolha a disciplina, o nível de dificuldade e quantas questões deseja responder. Cada acerto soma pontos diretamente no seu perfil!</p>
+        </section>
+
+        {% if messages %}
+            <div class="messages" role="status" aria-live="polite">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if sessao_ativa %}
+            <section class="resume-banner" aria-label="Sessão em andamento">
+                <div class="resume-copy">
+                    <h2>Você tem uma sessão em andamento!</h2>
+                    <p>Pontuação parcial: <strong>{{ sessao_ativa.pontuacao_final }} pts</strong>. Continue de onde parou ou inicie um novo treino abaixo.</p>
+                </div>
+                <div class="resume-actions">
+                    <a href="{% url 'uniquiz:jogar-individual' sessao_ativa.id %}" class="btn-resume">Continuar Sessão &rarr;</a>
+                </div>
+            </section>
+        {% endif %}
+
+        <div class="content-grid">
+            <!-- Card de Configuração -->
+            <section class="panel-card" aria-labelledby="setup-heading">
+                <h2 id="setup-heading">Personalizar Sessão</h2>
+
+                {% if total_perguntas_disponiveis > 0 %}
+                    <form class="setup-form" action="{% url 'uniquiz:iniciar-individual' %}" method="POST">
+                        {% csrf_token %}
+
+                        <div class="field-group">
+                            <label for="categoria">Disciplina / Categoria</label>
+                            <select id="categoria" name="categoria">
+                                <option value="">Todas as categorias ({{ total_perguntas_disponiveis }} perguntas)</option>
+                                {% for cat in categorias_disponiveis %}
+                                    <option value="{{ cat.id }}">{{ cat.nome }} ({{ cat.total_perguntas }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <fieldset class="choice-fieldset">
+                            <legend>Nível de Dificuldade</legend>
+                            <div class="choice-grid">
+                                <label class="choice-card">
+                                    <input type="radio" name="nivel" value="" checked>
+                                    <span>Todos</span>
+                                </label>
+                                <label class="choice-card choice-card--lvl1">
+                                    <input type="radio" name="nivel" value="1">
+                                    <span>Fácil</span>
+                                </label>
+                                <label class="choice-card choice-card--lvl2">
+                                    <input type="radio" name="nivel" value="2">
+                                    <span>Médio</span>
+                                </label>
+                                <label class="choice-card choice-card--lvl3">
+                                    <input type="radio" name="nivel" value="3">
+                                    <span>Difícil</span>
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="choice-fieldset">
+                            <legend>Quantidade de Perguntas</legend>
+                            <div class="choice-grid choice-grid--3">
+                                <label class="choice-card">
+                                    <input type="radio" name="quantidade" value="5" checked>
+                                    <span>5 questões</span>
+                                </label>
+                                <label class="choice-card">
+                                    <input type="radio" name="quantidade" value="10">
+                                    <span>10 questões</span>
+                                </label>
+                                <label class="choice-card">
+                                    <input type="radio" name="quantidade" value="15">
+                                    <span>15 questões</span>
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <button type="submit" class="btn-start">
+                            <span>Começar Quiz Individual</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="no-questions-box">
+                        <h3>Ainda não há perguntas cadastradas</h3>
+                        <p>Assim que um professor cadastrar questões no Painel Docente, elas aparecerão automaticamente aqui para você treinar!</p>
+                    </div>
+                {% endif %}
+            </section>
+
+            <!-- Card de Histórico Recente -->
+            <section class="panel-card panel-card--history" aria-labelledby="history-heading">
+                <h2 id="history-heading">Últimas Sessões</h2>
+
+                {% if historico %}
+                    <ul class="history-list">
+                        {% for item in historico %}
+                            <li class="history-item">
+                                <div class="history-meta">
+                                    <span class="history-score">{{ item.pontuacao_final }} pts</span>
+                                    <span class="history-sub">
+                                        {{ item.total_acertos }}/{{ item.total_respostas }} acertos • {{ item.data_inicio|date:"d/m/Y H:i" }}
+                                    </span>
+                                </div>
+                                <div class="history-right">
+                                    <span class="accuracy-pill">{{ item.taxa_acerto }}%</span>
+                                    <a href="{% url 'uniquiz:jogar-individual' item.id %}" class="history-link">Revisar</a>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="history-empty">Você ainda não concluiu nenhuma sessão individual. Inicie seu primeiro treino ao lado!</p>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>&copy; 2026 UniQuiz. Todos os direitos reservados.</span>
+            <a href="{% url 'uniquiz:tela-aluno' %}">Voltar para a Área do Aluno</a>
+        </div>
+    </footer>
+
+</body>
+</html>
