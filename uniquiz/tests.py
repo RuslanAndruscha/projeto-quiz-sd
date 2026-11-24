@@ -332,6 +332,8 @@ class ModoIndividualTests(TestCase):
         )
 
         self.cat = Categoria.objects.create(nome='Matemática')
+        self.outra_cat = Categoria.objects.create(nome='Algoritmos')
+
         self.p1 = Pergunta.objects.create(
             categoria=self.cat,
             texto_pergunta='Quanto é 2 + 2?',
@@ -354,6 +356,17 @@ class ModoIndividualTests(TestCase):
         Alternativa.objects.create(pergunta=self.p2, texto='25', correta=False)
         Alternativa.objects.create(pergunta=self.p2, texto='10', correta=False)
 
+        self.p_nivel3_only = Pergunta.objects.create(
+            categoria=self.outra_cat,
+            texto_pergunta='Complexidade da busca binária ordenada?',
+            nivel=3,
+            pontuacao=30,
+        )
+        Alternativa.objects.create(pergunta=self.p_nivel3_only, texto='O(log n)', correta=True)
+        Alternativa.objects.create(pergunta=self.p_nivel3_only, texto='O(n)', correta=False)
+        Alternativa.objects.create(pergunta=self.p_nivel3_only, texto='O(n²)', correta=False)
+        Alternativa.objects.create(pergunta=self.p_nivel3_only, texto='O(1)', correta=False)
+
     def test_modo_individual_exige_login_e_credencial_aluno(self):
         resp_anon = self.client.get(reverse('uniquiz:modo-individual'))
         self.assertRedirects(
@@ -365,18 +378,99 @@ class ModoIndividualTests(TestCase):
         resp_prof = self.client.get(reverse('uniquiz:modo-individual'))
         self.assertRedirects(resp_prof, reverse('uniquiz:tela-professor'))
 
-    def test_fluxo_completo_modo_individual_feedback_e_pontuacao_acid(self):
+    def test_sessao_sempre_comeca_no_nivel_1_e_encerra_em_game_over_ao_errar(self):
         self.client.force_login(self.aluno)
 
-        # Página inicial do modo individual
-        setup_resp = self.client.get(reverse('uniquiz:modo-individual'))
-        self.assertEqual(setup_resp.status_code, 200)
-        self.assertContains(setup_resp, 'Matemática')
+        # Categoria sem perguntas de nível 1 inicia com fallback para o nível disponível
+        resp_fallback = self.client.post(
+            reverse('uniquiz:iniciar-individual'),
+            {'categoria': str(self.outra_cat.id)},
+        )
+        sessao_fallback = self.SessaoIndividual.objects.get(usuario=self.aluno)
+        self.assertRedirects(
+            resp_fallback,
+            reverse('uniquiz:jogar-individual', args=[sessao_fallback.id]),
+        )
+        page_fallback = self.client.get(reverse('uniquiz:jogar-individual', args=[sessao_fallback.id]))
+        self.assertEqual(page_fallback.context['pergunta'].id, self.p_nivel3_only.id)
 
-        # Iniciar sessão
+        # Inicia sessão na categoria Matemática -> primeira pergunta deve ser nível 1
         start_resp = self.client.post(
             reverse('uniquiz:iniciar-individual'),
-            {'categoria': str(self.cat.id), 'nivel': '', 'quantidade': '5'},
+            {'categoria': str(self.cat.id)},
+        )
+        sessao_fallback.refresh_from_db()
+        self.assertEqual(sessao_fallback.status, 'abandonada')
+
+        sessao = self.SessaoIndividual.objects.get(usuario=self.aluno, status='em_andamento')
+        self.assertRedirects(
+            start_resp,
+            reverse('uniquiz:jogar-individual', args=[sessao.id]),
+        )
+
+        page1 = self.client.get(reverse('uniquiz:jogar-individual', args=[sessao.id]))
+        self.assertEqual(page1.context['modo'], 'pergunta')
+        pergunta1 = page1.context['pergunta']
+        self.assertEqual(pergunta1.categoria_id, self.cat.id)
+        self.assertEqual(pergunta1.nivel, 1)
+
+        alt1_correta = pergunta1.alternativa_set.get(correta=True)
+
+        # Acerta a primeira pergunta e testa idempotência em reenvio
+        self.client.post(
+            reverse('uniquiz:responder-individual', args=[sessao.id]),
+            {'pergunta_id': str(pergunta1.id), 'alternativa_id': str(alt1_correta.id)},
+        )
+        self.client.post(
+            reverse('uniquiz:responder-individual', args=[sessao.id]),
+            {'pergunta_id': str(pergunta1.id), 'alternativa_id': str(alt1_correta.id)},
+        )
+
+        sessao.refresh_from_db()
+        self.aluno.refresh_from_db()
+        self.assertEqual(sessao.pontuacao_final, pergunta1.pontuacao)
+        self.assertEqual(self.aluno.pontuacao_total, pergunta1.pontuacao)
+        self.assertEqual(sessao.status, 'em_andamento')
+
+        # Avança para a próxima pergunta não respondida
+        self.client.post(reverse('uniquiz:avancar-individual', args=[sessao.id]))
+        page2 = self.client.get(reverse('uniquiz:jogar-individual', args=[sessao.id]))
+        self.assertEqual(page2.context['modo'], 'pergunta')
+        pergunta2 = page2.context['pergunta']
+        self.assertNotEqual(pergunta2.id, pergunta1.id)
+
+        alt2_errada = pergunta2.alternativa_set.filter(correta=False).first()
+
+        # Erra a segunda pergunta -> entra imediatamente em Game Over e encerra a sessão
+        self.client.post(
+            reverse('uniquiz:responder-individual', args=[sessao.id]),
+            {'pergunta_id': str(pergunta2.id), 'alternativa_id': str(alt2_errada.id)},
+        )
+        fb_page = self.client.get(reverse('uniquiz:jogar-individual', args=[sessao.id]))
+        self.assertEqual(fb_page.context['modo'], 'feedback')
+        self.assertTrue(fb_page.context['game_over'])
+
+        self.client.post(reverse('uniquiz:avancar-individual', args=[sessao.id]))
+        result_page = self.client.get(reverse('uniquiz:jogar-individual', args=[sessao.id]))
+        self.assertEqual(result_page.context['modo'], 'resultado')
+        self.assertTrue(result_page.context['game_over'])
+        self.assertEqual(result_page.context['total_respostas'], 2)
+        self.assertEqual(result_page.context['total_acertos'], 1)
+        self.assertEqual(result_page.context['total_erros'], 1)
+
+        sessao.refresh_from_db()
+        self.aluno.refresh_from_db()
+        self.assertEqual(sessao.status, 'finalizada')
+        self.assertEqual(sessao.pontuacao_final, pergunta1.pontuacao)
+        self.assertEqual(self.aluno.pontuacao_total, pergunta1.pontuacao)
+        self.assertEqual(self.RespostaLog.objects.filter(sessao_individual=sessao).count(), 2)
+
+
+    def test_modo_geral_sorteia_nivel_1_sem_filtrar_categoria(self):
+        self.client.force_login(self.aluno)
+        start_resp = self.client.post(
+            reverse('uniquiz:iniciar-individual'),
+            {'categoria': ''},
         )
         sessao = self.SessaoIndividual.objects.get(usuario=self.aluno)
         self.assertRedirects(
@@ -384,62 +478,13 @@ class ModoIndividualTests(TestCase):
             reverse('uniquiz:jogar-individual', args=[sessao.id]),
         )
 
-        # Jogar as 2 perguntas cadastradas
-        for idx in range(2):
-            page = self.client.get(reverse('uniquiz:jogar-individual', args=[sessao.id]))
-            self.assertEqual(page.status_code, 200)
-            self.assertEqual(page.context['modo'], 'pergunta')
-            pergunta_atual = page.context['pergunta']
-
-            # Acerta p1 (10 pts), erra p2 (0 pts)
-            alt_escolhida = (
-                self.p1_correta if pergunta_atual.id == self.p1.id else self.p2_errada
-            )
-            ans_resp = self.client.post(
-                reverse('uniquiz:responder-individual', args=[sessao.id]),
-                {'pergunta_id': str(pergunta_atual.id), 'alternativa_id': str(alt_escolhida.id)},
-            )
-            self.assertRedirects(
-                ans_resp,
-                reverse('uniquiz:jogar-individual', args=[sessao.id]),
-            )
-
-            # Tentar reenviar a mesma resposta (idempotência: não duplica pontuação nem log)
-            self.client.post(
-                reverse('uniquiz:responder-individual', args=[sessao.id]),
-                {'pergunta_id': str(pergunta_atual.id), 'alternativa_id': str(alt_escolhida.id)},
-            )
-
-            # Verifica tela de feedback imediato
-            fb_page = self.client.get(reverse('uniquiz:jogar-individual', args=[sessao.id]))
-            self.assertEqual(fb_page.context['modo'], 'feedback')
-
-            # Avança para próxima pergunta / resultado
-            adv_resp = self.client.post(reverse('uniquiz:avancar-individual', args=[sessao.id]))
-            self.assertRedirects(
-                adv_resp,
-                reverse('uniquiz:jogar-individual', args=[sessao.id]),
-            )
-
-        # Verifica tela de resultado final e consistência no banco
-        result_page = self.client.get(reverse('uniquiz:jogar-individual', args=[sessao.id]))
-        self.assertEqual(result_page.status_code, 200)
-        self.assertEqual(result_page.context['modo'], 'resultado')
-        self.assertEqual(result_page.context['total_respostas'], 2)
-        self.assertEqual(result_page.context['total_acertos'], 1)
-
-        sessao.refresh_from_db()
-        self.aluno.refresh_from_db()
-        self.assertEqual(sessao.status, 'finalizada')
-        self.assertEqual(sessao.pontuacao_final, 10)
-        self.assertEqual(self.aluno.pontuacao_total, 10)
-        self.assertEqual(self.RespostaLog.objects.filter(sessao_individual=sessao).count(), 2)
-
+        page = self.client.get(reverse('uniquiz:jogar-individual', args=[sessao.id]))
+        self.assertEqual(page.context['pergunta'].nivel, 1)
     def test_isolamento_de_sessao_entre_alunos_e_rollback_acid(self):
         self.client.force_login(self.aluno)
         self.client.post(
             reverse('uniquiz:iniciar-individual'),
-            {'categoria': '', 'nivel': '', 'quantidade': '5'},
+            {'categoria': ''},
         )
         sessao = self.SessaoIndividual.objects.get(usuario=self.aluno)
 

@@ -203,21 +203,26 @@ def _perguntas_elegiveis():
     )
 
 
-def _sortear_proxima_pergunta(categoria_id, nivel_atual, respondidas_ids):
+def _sortear_proxima_pergunta(categoria_id, nivel_atual, respondidas_ids, apenas_nivel_exato=False):
     """Sorteia uma pergunta elegível não respondida respeitando a categoria e a progressão de nível."""
     base_qs = _perguntas_elegiveis().exclude(id__in=respondidas_ids)
     if categoria_id is not None:
         base_qs = base_qs.filter(categoria_id=categoria_id)
 
     nivel_seguro = max(1, min(int(nivel_atual or 1), 3))
-    proximo_nivel = min(nivel_seguro + 1, 3)
 
-    # Faixa alvo: nível atual ou um nível acima (quando houver avanço disponível)
-    niveis_alvo = [nivel_seguro] if proximo_nivel == nivel_seguro else [nivel_seguro, proximo_nivel]
+    if apenas_nivel_exato:
+        # No início da partida, força obrigatoriamente o Nível 1
+        niveis_alvo = [nivel_seguro]
+    else:
+        # Após acertar, a próxima pergunta vem do nível atual ou de um nível acima (até 3)
+        proximo_nivel = min(nivel_seguro + 1, 3)
+        niveis_alvo = [nivel_seguro] if proximo_nivel == nivel_seguro else [nivel_seguro, proximo_nivel]
+
     candidatos = list(base_qs.filter(nivel__in=niveis_alvo).values_list('id', 'nivel'))
 
     if not candidatos:
-        # Fallback: busca qualquer pergunta restante no tema/modo caso a faixa alvo tenha se esgotado
+        # Fallback: busca qualquer pergunta restante no tema/modo caso o nível alvo não tenha perguntas
         candidatos = list(base_qs.values_list('id', 'nivel'))
 
     if not candidatos:
@@ -303,18 +308,18 @@ def iniciar_modo_individual(request):
             messages.error(request, 'Categoria selecionada inválida.')
             return redirect('uniquiz:modo-individual')
 
-    # A sessão sempre começa no Nível 1 (Fácil)
     nivel_inicial = 1
     primeira_pergunta, nivel_sorteado = _sortear_proxima_pergunta(
         categoria_id=categoria_id,
         nivel_atual=nivel_inicial,
         respondidas_ids=[],
+        apenas_nivel_exato=True,
     )
 
     if primeira_pergunta is None:
         messages.warning(
             request,
-            'Não há perguntas de nível Fácil (Nível 1) disponíveis para o tema selecionado.',
+            'Nenhuma pergunta disponível para o tema selecionado.',
         )
         return redirect('uniquiz:modo-individual')
 
@@ -579,7 +584,7 @@ def responder_individual(request, sessao_id):
 
             game_over = False
             sessao_concluida = False
-            proximo_nivel_base = estado.get('nivel_atual', pergunta.nivel or 1)
+            nivel_base = max(int(estado.get('nivel_atual', 1)), pergunta.nivel)
 
             if acertou:
                 SessaoIndividual.objects.filter(pk=sessao.pk).update(
@@ -588,15 +593,15 @@ def responder_individual(request, sessao_id):
                 Usuario.objects.select_for_update().filter(pk=request.user.pk).update(
                     pontuacao_total=F('pontuacao_total') + pontos_ganhos
                 )
-                # Ao acertar, o próximo nível pode permanecer no atual ou subir 1 nível (até o 3)
-                proximo_nivel_base = min(max(int(proximo_nivel_base), pergunta.nivel) + 1, 3)
                 respondidas_ids = list(
                     RespostaLog.objects.filter(sessao_individual=sessao).values_list('pergunta_id', flat=True)
                 )
+                # Ao acertar, a próxima pergunta vem do mesmo nível ou de um nível acima
                 proxima_pergunta, nivel_sorteado = _sortear_proxima_pergunta(
                     categoria_id=estado.get('categoria_id'),
-                    nivel_atual=proximo_nivel_base,
+                    nivel_atual=nivel_base,
                     respondidas_ids=respondidas_ids,
+                    apenas_nivel_exato=False,
                 )
                 if proxima_pergunta is None:
                     SessaoIndividual.objects.filter(pk=sessao.pk).update(status='finalizada')
