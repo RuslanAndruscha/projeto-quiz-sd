@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import random
 import time
 from functools import wraps
@@ -55,20 +54,12 @@ def credencial_requerida(credencial_permitida):
             return view_func(request, *args, **kwargs)
         return _wrapped
     return decorator
-=======
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-
-Usuario = get_user_model()
->>>>>>> 677942ccba986473054240c98972df8030091c62
 
 
 def home(request):
     return render(request, 'uniquiz/home.html')
 
 
-<<<<<<< HEAD
 @never_cache
 def login_view(request):
     if request.user.is_authenticated:
@@ -212,6 +203,36 @@ def _perguntas_elegiveis():
     )
 
 
+def _sortear_proxima_pergunta(categoria_id, nivel_atual, respondidas_ids):
+    """Sorteia uma pergunta elegível não respondida respeitando a categoria e a progressão de nível."""
+    base_qs = _perguntas_elegiveis().exclude(id__in=respondidas_ids)
+    if categoria_id is not None:
+        base_qs = base_qs.filter(categoria_id=categoria_id)
+
+    nivel_seguro = max(1, min(int(nivel_atual or 1), 3))
+    proximo_nivel = min(nivel_seguro + 1, 3)
+
+    # Faixa alvo: nível atual ou um nível acima (quando houver avanço disponível)
+    niveis_alvo = [nivel_seguro] if proximo_nivel == nivel_seguro else [nivel_seguro, proximo_nivel]
+    candidatos = list(base_qs.filter(nivel__in=niveis_alvo).values_list('id', 'nivel'))
+
+    if not candidatos:
+        # Fallback: busca qualquer pergunta restante no tema/modo caso a faixa alvo tenha se esgotado
+        candidatos = list(base_qs.values_list('id', 'nivel'))
+
+    if not candidatos:
+        return None, nivel_seguro
+
+    pergunta_id, nivel_sorteado = random.choice(candidatos)
+    pergunta = (
+        Pergunta.objects.select_related('categoria', 'autor')
+        .prefetch_related('alternativa_set')
+        .filter(pk=pergunta_id)
+        .first()
+    )
+    return pergunta, nivel_sorteado
+
+
 @credencial_requerida(1)
 def modo_individual(request):
     perguntas_validas = _perguntas_elegiveis()
@@ -269,41 +290,33 @@ def modo_individual(request):
 @credencial_requerida(1)
 def iniciar_modo_individual(request):
     categoria_id_raw = request.POST.get('categoria', '').strip()
-    nivel_raw = request.POST.get('nivel', '').strip()
-    quantidade_raw = request.POST.get('quantidade', '5').strip()
-
-    try:
-        quantidade = int(quantidade_raw)
-        if quantidade not in (5, 10, 15):
-            quantidade = 5
-    except ValueError:
-        quantidade = 5
-
-    perguntas_qs = _perguntas_elegiveis()
+    categoria_id = None
 
     if categoria_id_raw:
         try:
-            perguntas_qs = perguntas_qs.filter(categoria_id=int(categoria_id_raw))
+            categoria_id = int(categoria_id_raw)
         except ValueError:
             messages.error(request, 'Categoria selecionada inválida.')
             return redirect('uniquiz:modo-individual')
 
-    if nivel_raw:
-        if nivel_raw not in ('1', '2', '3'):
-            messages.error(request, 'Nível de dificuldade inválido.')
+        if not Categoria.objects.filter(pk=categoria_id).exists():
+            messages.error(request, 'Categoria selecionada inválida.')
             return redirect('uniquiz:modo-individual')
-        perguntas_qs = perguntas_qs.filter(nivel=int(nivel_raw))
 
-    ids_disponiveis = list(perguntas_qs.values_list('id', flat=True))
-    if not ids_disponiveis:
+    # A sessão sempre começa no Nível 1 (Fácil)
+    nivel_inicial = 1
+    primeira_pergunta, nivel_sorteado = _sortear_proxima_pergunta(
+        categoria_id=categoria_id,
+        nivel_atual=nivel_inicial,
+        respondidas_ids=[],
+    )
+
+    if primeira_pergunta is None:
         messages.warning(
             request,
-            'Nenhuma pergunta disponível para os filtros escolhidos. Tente selecionar outra categoria ou nível.',
+            'Não há perguntas de nível Fácil (Nível 1) disponíveis para o tema selecionado.',
         )
         return redirect('uniquiz:modo-individual')
-
-    qtd_selecionada = min(quantidade, len(ids_disponiveis))
-    pergunta_ids = random.sample(ids_disponiveis, qtd_selecionada)
 
     try:
         with transaction.atomic():
@@ -323,10 +336,13 @@ def iniciar_modo_individual(request):
 
     request.session['quiz_individual'] = {
         'sessao_id': sessao.id,
-        'pergunta_ids': pergunta_ids,
-        'ultimo_feedback': None,
-        'pergunta_iniciada_id': pergunta_ids[0],
+        'categoria_id': categoria_id,
+        'nivel_atual': nivel_sorteado,
+        'respondidas_ids': [],
+        'pergunta_atual_id': primeira_pergunta.id,
         'pergunta_iniciada_em': time.time(),
+        'game_over': False,
+        'ultimo_feedback': None,
     }
     request.session.modified = True
 
@@ -354,9 +370,7 @@ def jogar_individual(request, sessao_id):
             pk=feedback['pergunta_id'],
         )
         alternativas = list(pergunta.alternativa_set.all().order_by('id'))
-        total_perguntas = len(estado.get('pergunta_ids', [])) or 1
         numero_atual = feedback.get('numero_atual', 1)
-        progresso_percentual = round((numero_atual / total_perguntas) * 100)
 
         context = {
             'modo': 'feedback',
@@ -364,14 +378,17 @@ def jogar_individual(request, sessao_id):
             'pergunta': pergunta,
             'alternativas': alternativas,
             'feedback': feedback,
+            'game_over': bool(feedback.get('game_over')),
+            'nivel_atual': estado.get('nivel_atual', 1),
             'numero_atual': numero_atual,
-            'total_perguntas': total_perguntas,
-            'progresso_percentual': progresso_percentual,
+            'total_perguntas': numero_atual,
+            'progresso_percentual': 100 if feedback.get('game_over') else 0,
         }
         return render(request, 'uniquiz/quiz-individual.html', context)
 
-    # 2. Exibir resultado final quando a sessão foi concluída
+    # 2. Exibir resultado final quando a sessão foi concluída (ou Game Over)
     if sessao.status == 'finalizada':
+        game_over = bool(estado_valido and estado.get('game_over'))
         if estado_valido:
             request.session.pop('quiz_individual', None)
             request.session.modified = True
@@ -384,6 +401,10 @@ def jogar_individual(request, sessao_id):
         )
         total_respostas = len(logs)
         total_acertos = sum(1 for log in logs if log.acertou)
+        total_erros = total_respostas - total_acertos
+        if not game_over and total_erros > 0:
+            game_over = True
+
         taxa_acerto = round((total_acertos / total_respostas) * 100) if total_respostas else 0
         tempo_medio = (
             round(sum(log.tempo_resposta_segundos for log in logs) / total_respostas, 1)
@@ -408,17 +429,19 @@ def jogar_individual(request, sessao_id):
         context = {
             'modo': 'resultado',
             'sessao': sessao,
+            'game_over': game_over,
+            'pontuacao_acumulada_perfil': request.user.pontuacao_total,
             'total_respostas': total_respostas,
             'total_acertos': total_acertos,
-            'total_erros': total_respostas - total_acertos,
+            'total_erros': total_erros,
             'taxa_acerto': taxa_acerto,
             'tempo_medio': tempo_medio,
             'revisao': revisao,
         }
         return render(request, 'uniquiz/quiz-individual.html', context)
 
-    # 3. Sessão em andamento: identificar próxima pergunta não respondida
-    if not estado_valido or not estado.get('pergunta_ids'):
+    # 3. Sessão em andamento: carregar pergunta atual ou sortear a próxima dinamicamente
+    if not estado_valido:
         with transaction.atomic():
             sessao_lock = SessaoIndividual.objects.select_for_update().get(pk=sessao.pk)
             if RespostaLog.objects.filter(sessao_individual=sessao_lock).exists():
@@ -428,48 +451,55 @@ def jogar_individual(request, sessao_id):
             sessao_lock.save()
         return redirect('uniquiz:jogar-individual', sessao_id=sessao.id)
 
-    pergunta_ids = estado['pergunta_ids']
-    respondidas_ids = set(
+    respondidas_ids = list(
         RespostaLog.objects.filter(sessao_individual=sessao).values_list('pergunta_id', flat=True)
     )
-    restantes = [pid for pid in pergunta_ids if pid not in respondidas_ids]
+    categoria_id = estado.get('categoria_id')
+    nivel_atual = estado.get('nivel_atual', 1)
+    pergunta_atual_id = estado.get('pergunta_atual_id')
 
-    if not restantes:
-        with transaction.atomic():
-            SessaoIndividual.objects.select_for_update().filter(pk=sessao.pk).update(status='finalizada')
-        return redirect('uniquiz:jogar-individual', sessao_id=sessao.id)
+    pergunta = None
+    if pergunta_atual_id and pergunta_atual_id not in respondidas_ids:
+        pergunta = (
+            Pergunta.objects.select_related('categoria', 'autor')
+            .prefetch_related('alternativa_set')
+            .filter(pk=pergunta_atual_id)
+            .first()
+        )
 
-    proxima_id = restantes[0]
-    pergunta = (
-        Pergunta.objects.select_related('categoria', 'autor')
-        .prefetch_related('alternativa_set')
-        .filter(pk=proxima_id)
-        .first()
-    )
     if pergunta is None:
-        # Pergunta removida pelo professor durante a sessão: pula com segurança
-        estado['pergunta_ids'] = [pid for pid in pergunta_ids if pid != proxima_id]
-        request.session.modified = True
-        return redirect('uniquiz:jogar-individual', sessao_id=sessao.id)
+        pergunta, nivel_sorteado = _sortear_proxima_pergunta(
+            categoria_id=categoria_id,
+            nivel_atual=nivel_atual,
+            respondidas_ids=respondidas_ids,
+        )
+        if pergunta is None:
+            with transaction.atomic():
+                SessaoIndividual.objects.select_for_update().filter(
+                    pk=sessao.pk
+                ).update(status='finalizada')
+            return redirect('uniquiz:jogar-individual', sessao_id=sessao.id)
 
-    if estado.get('pergunta_iniciada_id') != pergunta.id:
-        estado['pergunta_iniciada_id'] = pergunta.id
+        estado['nivel_atual'] = nivel_sorteado
+        estado['pergunta_atual_id'] = pergunta.id
+        estado['pergunta_iniciada_em'] = time.time()
+        request.session.modified = True
+    elif not estado.get('pergunta_iniciada_em'):
         estado['pergunta_iniciada_em'] = time.time()
         request.session.modified = True
 
     alternativas = list(pergunta.alternativa_set.all().order_by('id'))
-    total_perguntas = len(pergunta_ids)
     numero_atual = len(respondidas_ids) + 1
-    progresso_percentual = round(((numero_atual - 1) / total_perguntas) * 100)
 
     context = {
         'modo': 'pergunta',
         'sessao': sessao,
         'pergunta': pergunta,
         'alternativas': alternativas,
+        'nivel_atual': estado.get('nivel_atual', pergunta.nivel),
         'numero_atual': numero_atual,
-        'total_perguntas': total_perguntas,
-        'progresso_percentual': progresso_percentual,
+        'total_perguntas': numero_atual,
+        'progresso_percentual': 0,
     }
     return render(request, 'uniquiz/quiz-individual.html', context)
 
@@ -492,13 +522,12 @@ def responder_individual(request, sessao_id):
         messages.warning(request, 'Sessão de quiz expirada ou inválida.')
         return redirect('uniquiz:modo-individual')
 
-    pergunta_ids = estado.get('pergunta_ids', [])
-    if pergunta_id not in pergunta_ids:
-        messages.error(request, 'Pergunta não pertence à sessão atual.')
+    if estado.get('pergunta_atual_id') != pergunta_id:
+        messages.error(request, 'Pergunta não corresponde à etapa atual da sessão.')
         return redirect('uniquiz:jogar-individual', sessao_id=sessao_id)
 
     inicio_ts = estado.get('pergunta_iniciada_em')
-    if isinstance(inicio_ts, (int, float)) and estado.get('pergunta_iniciada_id') == pergunta_id:
+    if isinstance(inicio_ts, (int, float)):
         tempo_resposta = round(max(0.1, min(3600.0, time.time() - inicio_ts)), 2)
     else:
         tempo_resposta = 1.0
@@ -548,6 +577,10 @@ def responder_individual(request, sessao_id):
                 tempo_resposta_segundos=tempo_resposta,
             )
 
+            game_over = False
+            sessao_concluida = False
+            proximo_nivel_base = estado.get('nivel_atual', pergunta.nivel or 1)
+
             if acertou:
                 SessaoIndividual.objects.filter(pk=sessao.pk).update(
                     pontuacao_final=F('pontuacao_final') + pontos_ganhos
@@ -555,23 +588,45 @@ def responder_individual(request, sessao_id):
                 Usuario.objects.select_for_update().filter(pk=request.user.pk).update(
                     pontuacao_total=F('pontuacao_total') + pontos_ganhos
                 )
-
-            total_respondidas = RespostaLog.objects.filter(sessao_individual=sessao).count()
-            sessao_concluida = total_respondidas >= len(pergunta_ids)
-            if sessao_concluida:
+                # Ao acertar, o próximo nível pode permanecer no atual ou subir 1 nível (até o 3)
+                proximo_nivel_base = min(max(int(proximo_nivel_base), pergunta.nivel) + 1, 3)
+                respondidas_ids = list(
+                    RespostaLog.objects.filter(sessao_individual=sessao).values_list('pergunta_id', flat=True)
+                )
+                proxima_pergunta, nivel_sorteado = _sortear_proxima_pergunta(
+                    categoria_id=estado.get('categoria_id'),
+                    nivel_atual=proximo_nivel_base,
+                    respondidas_ids=respondidas_ids,
+                )
+                if proxima_pergunta is None:
+                    SessaoIndividual.objects.filter(pk=sessao.pk).update(status='finalizada')
+                    sessao_concluida = True
+                    estado['pergunta_atual_id'] = None
+                else:
+                    estado['nivel_atual'] = nivel_sorteado
+                    estado['pergunta_atual_id'] = proxima_pergunta.id
+            else:
+                # Erro encerra a sessão imediatamente em Game Over
+                game_over = True
+                sessao_concluida = True
+                estado['game_over'] = True
+                estado['pergunta_atual_id'] = None
                 SessaoIndividual.objects.filter(pk=sessao.pk).update(status='finalizada')
 
+            total_respondidas = RespostaLog.objects.filter(sessao_individual=sessao).count()
             correta_obj = Alternativa.objects.filter(pergunta=pergunta, correta=True).first()
     except DatabaseError:
         messages.error(request, 'Erro ao registrar sua resposta. A operação foi revertida.')
         return redirect('uniquiz:jogar-individual', sessao_id=sessao_id)
 
+    estado['pergunta_iniciada_em'] = None
     estado['ultimo_feedback'] = {
         'pergunta_id': pergunta_id,
         'alternativa_escolhida_id': alternativa_id,
         'alternativa_correta_id': correta_obj.id if correta_obj else None,
         'alternativa_correta_texto': correta_obj.texto if correta_obj else '',
         'acertou': acertou,
+        'game_over': game_over,
         'pontos_ganhos': pontos_ganhos,
         'tempo_resposta': tempo_resposta,
         'numero_atual': total_respondidas,
@@ -592,8 +647,7 @@ def avancar_individual(request, sessao_id):
     estado = request.session.get('quiz_individual')
     if isinstance(estado, dict) and estado.get('sessao_id') == sessao.id:
         estado['ultimo_feedback'] = None
-        estado['pergunta_iniciada_id'] = None
-        estado['pergunta_iniciada_em'] = None
+        estado['pergunta_iniciada_em'] = time.time()
         request.session.modified = True
 
     return redirect('uniquiz:jogar-individual', sessao_id=sessao.id)
@@ -817,68 +871,3 @@ def excluir_pergunta(request):
         messages.error(request, 'Erro ao excluir a pergunta. A operação foi revertida.')
 
     return redirect('uniquiz:tela-professor')
-=======
-def login(request):
-    return render(request, 'uniquiz/login.html')
-
-
-def cadastro(request):
-    if request.method == 'POST':
-        nome = request.POST.get('primeiro_nome', '').strip()
-        sobrenome = request.POST.get('ultimo_nome', '').strip()
-        email = request.POST.get('email', '').strip().lower()
-        senha = request.POST.get('senha', '')
-        confirmar_senha = request.POST.get('confirmar_senha', '')
-        credencial = request.POST.get('credencial', '')
-
-        valores = {
-            'primeiro_nome': nome,
-            'ultimo_nome': sobrenome,
-            'email': email,
-            'credencial': credencial,
-        }
-
-        erro = None
-
-        if not nome or not sobrenome or not email or not senha or not confirmar_senha:
-            erro = 'Preencha todos os campos.'
-        elif senha != confirmar_senha:
-            erro = 'As senhas não coincidem.'
-        elif len(senha) < 8:
-            erro = 'A senha precisa ter pelo menos 8 caracteres.'
-        elif credencial not in ('1', '2'):
-            erro = 'Selecione um perfil válido.'
-        elif Usuario.objects.filter(email__iexact=email).exists():
-            erro = 'Este e-mail já está cadastrado.'
-
-        if erro:
-            request.session['cadastro_valores'] = valores
-            request.session['cadastro_erro'] = erro
-            return redirect('uniquiz:cadastro')
-
-        username = email
-
-        if Usuario.objects.filter(username__iexact=username).exists():
-            messages.error(request, 'Já existe uma conta com este e-mail.')
-            return redirect('uniquiz:cadastro')
-
-        Usuario.objects.create_user(
-            username=username,
-            first_name=nome,
-            last_name=sobrenome,
-            email=email,
-            password=senha,
-            credencial=int(credencial),
-        )
-
-        messages.success(request, 'Cadastro realizado com sucesso!')
-        return redirect('uniquiz:cadastro')
-
-    valores = request.session.pop('cadastro_valores', {})
-    erro = request.session.pop('cadastro_erro', None)
-
-    if erro:
-        messages.error(request, erro)
-
-    return render(request, 'uniquiz/cadastro.html', {'valores': valores})
->>>>>>> 677942ccba986473054240c98972df8030091c62
