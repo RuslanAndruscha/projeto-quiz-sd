@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, views_competitivo
+from . import views, views_competitivo, views_engajamento
 
 app_name = 'uniquiz'
 
@@ -25,4 +25,5 @@ urlpatterns = [
     path('aluno/competitivo/entrar-codigo/', views_competitivo.entrar_por_codigo, name='entrar-codigo-1v1'),
     path('aluno/competitivo/partida/<int:partida_id>/', views_competitivo.sala_partida_1v1, name='sala-partida-1v1'),
     path('aluno/competitivo/partida/<int:partida_id>/cancelar/', views_competitivo.cancelar_partida_1v1, name='cancelar-partida-1v1'),
+    path('ranking/', views_engajamento.ranking_global, name='ranking-global'),
 ]

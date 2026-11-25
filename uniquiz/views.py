@@ -15,6 +15,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
+from .engajamento import escolher_candidato_priorizado
 from .models import Alternativa, Categoria, Pergunta, RespostaLog, SessaoIndividual, Usuario
 
 CATEGORIAS_PADRAO = [
@@ -203,8 +204,8 @@ def _perguntas_elegiveis():
     )
 
 
-def _sortear_proxima_pergunta(categoria_id, nivel_atual, respondidas_ids, apenas_nivel_exato=False):
-    """Sorteia uma pergunta elegível não respondida respeitando a categoria e a progressão de nível."""
+def _sortear_proxima_pergunta(categoria_id, nivel_atual, respondidas_ids, apenas_nivel_exato=False, usuario=None):
+    """Sorteia uma pergunta elegível não respondida respeitando categoria, nível e priorização de erros recentes."""
     base_qs = _perguntas_elegiveis().exclude(id__in=respondidas_ids)
     if categoria_id is not None:
         base_qs = base_qs.filter(categoria_id=categoria_id)
@@ -212,23 +213,26 @@ def _sortear_proxima_pergunta(categoria_id, nivel_atual, respondidas_ids, apenas
     nivel_seguro = max(1, min(int(nivel_atual or 1), 3))
 
     if apenas_nivel_exato:
-        # No início da partida, força obrigatoriamente o Nível 1
         niveis_alvo = [nivel_seguro]
     else:
         # Após acertar, a próxima pergunta vem do nível atual ou de um nível acima (até 3)
         proximo_nivel = min(nivel_seguro + 1, 3)
         niveis_alvo = [nivel_seguro] if proximo_nivel == nivel_seguro else [nivel_seguro, proximo_nivel]
 
-    candidatos = list(base_qs.filter(nivel__in=niveis_alvo).values_list('id', 'nivel'))
+    candidatos = list(base_qs.filter(nivel__in=niveis_alvo).values_list('id', 'nivel', 'categoria_id'))
 
     if not candidatos:
         # Fallback: busca qualquer pergunta restante no tema/modo caso o nível alvo não tenha perguntas
-        candidatos = list(base_qs.values_list('id', 'nivel'))
+        candidatos = list(base_qs.values_list('id', 'nivel', 'categoria_id'))
 
     if not candidatos:
         return None, nivel_seguro
 
-    pergunta_id, nivel_sorteado = random.choice(candidatos)
+    if categoria_id is None and usuario is not None:
+        pergunta_id, nivel_sorteado, _ = escolher_candidato_priorizado(candidatos, usuario=usuario)
+    else:
+        pergunta_id, nivel_sorteado, _ = random.choice(candidatos)
+
     pergunta = (
         Pergunta.objects.select_related('categoria', 'autor')
         .prefetch_related('alternativa_set')
@@ -314,6 +318,7 @@ def iniciar_modo_individual(request):
         nivel_atual=nivel_inicial,
         respondidas_ids=[],
         apenas_nivel_exato=True,
+        usuario=request.user,
     )
 
     if primeira_pergunta is None:
@@ -477,6 +482,7 @@ def jogar_individual(request, sessao_id):
             categoria_id=categoria_id,
             nivel_atual=nivel_atual,
             respondidas_ids=respondidas_ids,
+            usuario=request.user,
         )
         if pergunta is None:
             with transaction.atomic():
@@ -602,6 +608,7 @@ def responder_individual(request, sessao_id):
                     nivel_atual=nivel_base,
                     respondidas_ids=respondidas_ids,
                     apenas_nivel_exato=False,
+                    usuario=request.user,
                 )
                 if proxima_pergunta is None:
                     SessaoIndividual.objects.filter(pk=sessao.pk).update(status='finalizada')

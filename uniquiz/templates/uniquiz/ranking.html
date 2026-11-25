@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking Global e Desempenho - UniQuiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --red: #ff595e;
+            --yellow: #ffca3a;
+            --green: #8ac926;
+            --blue: #1982c4;
+            --purple: #6a4c93;
+
+            --bg-light: #f9f9fc;
+            --text-dark: #2d3142;
+            --text-muted: #555a6e;
+            --border-soft: #e2e5ef;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(106, 76, 147, 0.08) 0%, rgba(25, 130, 196, 0.08) 100%);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: var(--white);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .site-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0.9rem 5%;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--purple);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--red);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-nav {
+            display: inline-flex;
+            align-items: center;
+            min-height: 38px;
+            padding: 0.35rem 0.95rem;
+            border-radius: 25px;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-soft);
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .btn-nav:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+
+        .btn-nav--primary {
+            background-color: var(--purple);
+            border-color: var(--purple);
+            color: var(--white);
+        }
+
+        .btn-nav--primary:hover {
+            background-color: var(--blue);
+            border-color: var(--blue);
+            color: var(--white);
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 2rem 5% 4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .hero-box {
+            background-color: var(--white);
+            border-radius: 22px;
+            padding: 2rem;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+            border-top: 6px solid var(--yellow);
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .hero-box h1 {
+            font-size: clamp(1.55rem, 3vw, 2.15rem);
+            color: var(--text-dark);
+        }
+
+        .hero-box p {
+            color: var(--text-muted);
+            font-size: 0.96rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .stat-box {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            padding: 1rem 1.15rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .stat-value--green { color: #456d09; }
+        .stat-value--blue { color: var(--blue); }
+        .stat-value--red { color: var(--red); }
+
+        .card {
+            background-color: var(--white);
+            border-radius: 22px;
+            padding: 1.85rem;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 1.15rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .card-header h2 {
+            font-size: 1.3rem;
+            color: var(--purple);
+        }
+
+        .card-note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.85rem 0.9rem;
+            border-bottom: 1px solid var(--border-soft);
+            font-size: 0.92rem;
+        }
+
+        th {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+            background-color: var(--bg-light);
+        }
+
+        tr.row-me {
+            background-color: rgba(106, 76, 147, 0.09);
+            font-weight: 600;
+        }
+
+        .pos-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            height: 30px;
+            padding: 0 0.55rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .pos-1 { background-color: rgba(255, 202, 58, 0.35); color: #7c5600; }
+        .pos-2 { background-color: rgba(25, 130, 196, 0.16); color: var(--blue); }
+        .pos-3 { background-color: rgba(255, 89, 94, 0.16); color: #b8252a; }
+
+        .me-pill {
+            display: inline-block;
+            margin-left: 0.4rem;
+            padding: 0.12rem 0.55rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background-color: var(--purple);
+            color: var(--white);
+        }
+
+        .score-strong {
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .wins-strong {
+            font-weight: 700;
+            color: #456d09;
+        }
+
+        /* Painel de Repetição Espaçada por Categoria */
+        .cat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .cat-item {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            padding: 1.15rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .cat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .cat-name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-dark);
+        }
+
+        .prio-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+        }
+
+        .prio-alta { background-color: rgba(255, 89, 94, 0.16); color: #b8252a; }
+        .prio-media { background-color: rgba(255, 202, 58, 0.3); color: #7c5600; }
+        .prio-baixa { background-color: rgba(138, 201, 38, 0.2); color: #456d09; }
+        .prio-neutro { background-color: rgba(25, 130, 196, 0.12); color: var(--blue); }
+
+        .bar-track {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background-color: var(--border-soft);
+            overflow: hidden;
+            display: flex;
+        }
+
+        .bar-ok {
+            background-color: var(--green);
+            height: 100%;
+        }
+
+        .bar-err {
+            background-color: var(--red);
+            height: 100%;
+        }
+
+        .cat-metrics {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .empty-box {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-muted);
+            background-color: var(--bg-light);
+            border-radius: 14px;
+        }
+
+        @media (max-width: 820px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .cat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Navegação do Ranking">
+            {% if user.credencial == 2 %}
+                <a href="{% url 'uniquiz:tela-professor' %}" class="logo">Uni<span>Quiz</span></a>
+            {% else %}
+                <a href="{% url 'uniquiz:tela-aluno' %}" class="logo">Uni<span>Quiz</span></a>
+            {% endif %}
+
+            <div class="nav-actions">
+                {% if user.credencial == 1 %}
+                    <a href="{% url 'uniquiz:modo-individual' %}" class="btn-nav">Modo Individual</a>
+                    <a href="{% url 'uniquiz:modo-competitivo' %}" class="btn-nav">Modo 1 vs 1</a>
+                    <a href="{% url 'uniquiz:tela-aluno' %}" class="btn-nav btn-nav--primary">&larr; Área do Aluno</a>
+                {% else %}
+                    <a href="{% url 'uniquiz:tela-professor' %}" class="btn-nav btn-nav--primary">&larr; Área do Professor</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero-box">
+            <h1>Ranking Global (Leaderboard)</h1>
+            <p>
+                Classificação atualizada automaticamente a partir dos <strong>pontos acumulados</strong> e das
+                <strong>vitórias no modo 1 vs 1</strong> (+{{ bonus_vitoria_1v1 }} pts de bônus por vitória no placar global).
+            </p>
+
+            {% if meu_resumo %}
+                <div class="summary-grid">
+                    <div class="stat-box">
+                        <span class="stat-label">Sua Posição</span>
+                        <span class="stat-value">#{{ meu_resumo.posicao }}</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Score Global</span>
+                        <span class="stat-value stat-value--blue">{{ meu_resumo.pontuacao_ranking }} pts</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Pontos Acumulados</span>
+                        <span class="stat-value">{{ meu_resumo.pontuacao_total }} pts</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Vitórias 1 vs 1</span>
+                        <span class="stat-value stat-value--green">{{ meu_resumo.vitorias_1v1 }}</span>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2>Classificação dos Alunos</h2>
+                <span class="card-note">{{ total_alunos_ranking }} aluno{{ total_alunos_ranking|pluralize }} no ranking</span>
+            </div>
+
+            {% if ranking %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Posição</th>
+                                <th>Aluno</th>
+                                <th>Curso</th>
+                                <th>Pontos Acumulados</th>
+                                <th>Vitórias 1 vs 1</th>
+                                <th>Score Global</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in ranking %}
+                                <tr class="{% if item.usuario_id == usuario_id_str %}row-me{% endif %}">
+                                    <td>
+                                        <span class="pos-badge {% if item.posicao <= 3 %}pos-{{ item.posicao }}{% endif %}">
+                                            #{{ item.posicao }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ item.nome }}
+                                        {% if item.usuario_id == usuario_id_str %}
+                                            <span class="me-pill">Você</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.curso }}</td>
+                                    <td>{{ item.pontuacao_total }} pts</td>
+                                    <td class="wins-strong">{{ item.vitorias_1v1 }}</td>
+                                    <td class="score-strong">{{ item.pontuacao_ranking }} pts</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-box">Nenhum aluno cadastrado para exibição no ranking ainda.</div>
+            {% endif %}
+        </section>
+
+        {% if user.credencial == 1 %}
+            <section class="card">
+                <div class="card-header">
+                    <div>
+                        <h2>Desempenho por Categoria (Repetição Espaçada)</h2>
+                        <p class="card-note">
+                            Baseado nas suas últimas {{ janela_recente }} respostas por categoria. No <strong>Modo Geral</strong>,
+                            categorias com maior taxa de erro recente têm maior probabilidade de aparecer para reforço.
+                        </p>
+                    </div>
+                    <a href="{% url 'uniquiz:modo-individual' %}" class="btn-nav btn-nav--primary">Treinar no Modo Geral</a>
+                </div>
+
+                {% if estatisticas_categorias %}
+                    <div class="cat-grid">
+                        {% for cat in estatisticas_categorias %}
+                            <article class="cat-item">
+                                <div class="cat-top">
+                                    <span class="cat-name">{{ cat.nome }}</span>
+                                    <span class="prio-badge prio-{{ cat.prioridade_classe }}">{{ cat.prioridade_label }}</span>
+                                </div>
+
+                                <div class="bar-track" aria-hidden="true">
+                                    {% if cat.total_recente > 0 %}
+                                        <div class="bar-ok" data-width="{{ cat.taxa_acerto }}"></div>
+                                        <div class="bar-err" data-width="{{ cat.taxa_erro }}"></div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="cat-metrics">
+                                    {% if cat.total_recente > 0 %}
+                                        <span>Acertos: <strong>{{ cat.acertos }}/{{ cat.total_recente }}</strong> ({{ cat.taxa_acerto }}%)</span>
+                                        <span>Erros: <strong>{{ cat.taxa_erro }}%</strong> • Peso: <strong>{{ cat.peso }}x</strong></span>
+                                    {% else %}
+                                        <span>Nenhuma resposta registrada nesta categoria ainda.</span>
+                                        <span>Peso padrão: <strong>1.0x</strong></span>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-box">Nenhuma categoria com perguntas cadastradas encontrada.</div>
+                {% endif %}
+            </section>
+        {% endif %}
+    </main>
+    <script>
+        document.querySelectorAll('.bar-ok[data-width], .bar-err[data-width]').forEach((el) => {
+            el.style.width = `${el.dataset.width}%`;
+        });
+    </script>
+</body>
+</html>

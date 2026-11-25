@@ -149,26 +149,25 @@
             display: inline-flex;
         }
 
-        .btn-logout {
+        .btn-ranking {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             min-height: 40px;
             padding: 0.45rem 1.2rem;
             border-radius: 25px;
-            background-color: rgba(255, 89, 94, 0.1);
-            color: var(--red);
+            background-color: rgba(106, 76, 147, 0.12);
+            color: var(--purple);
             text-decoration: none;
             font: inherit;
             font-size: 0.9rem;
             font-weight: 600;
             border: 2px solid transparent;
-            cursor: pointer;
             transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
         }
 
-        .btn-logout:hover {
-            background-color: var(--red);
+        .btn-ranking:hover {
+            background-color: var(--purple);
             color: var(--white);
             transform: translateY(-2px);
         }
@@ -682,7 +681,7 @@
                         <span class="student-role">Perfil Aluno</span>
                     </div>
                 </div>
-
+                <a href="{% url 'uniquiz:ranking-global' %}" class="btn-ranking">Ranking Global</a>
                 <form class="logout-form" action="{% url 'uniquiz:logout' %}" method="POST">
                     {% csrf_token %}
                     <button type="submit" class="btn-logout">Sair</button>
