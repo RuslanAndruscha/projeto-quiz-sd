@@ -31,6 +31,8 @@ ALLOWED_HOSTS = ['192.168.100.120', 'localhost', '127.0.0.1','192.168.100.10']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -123,3 +125,12 @@ LOGIN_URL = 'uniquiz:login'
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Configuração ASGI / WebSockets (Modo Competitivo 1v1)
+ASGI_APPLICATION = 'quiz.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}

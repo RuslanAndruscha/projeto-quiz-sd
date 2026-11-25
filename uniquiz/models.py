@@ -82,3 +82,55 @@ class RespostaLog(models.Model):
     partida_competitiva = models.ForeignKey(PartidaCompetitiva, on_delete=models.CASCADE, null=True, blank=True)
     acertou = models.BooleanField()
     tempo_resposta_segundos = models.FloatField()
+
+class SalaCompetitiva(models.Model):
+    MOTIVOS_ENCERRAMENTO = [
+        ('em_aberto', 'Em aberto'),
+        ('normal', 'Concluída normalmente'),
+        ('desconexao', 'Vitória por desconexão'),
+        ('cancelada', 'Cancelada antes do início'),
+    ]
+
+    partida = models.OneToOneField(
+        PartidaCompetitiva,
+        on_delete=models.CASCADE,
+        related_name='sala',
+    )
+    codigo = models.CharField(max_length=12, unique=True)
+    privada = models.BooleanField(default=False)
+    total_perguntas = models.PositiveSmallIntegerField(default=10)
+    tempo_limite_segundos = models.PositiveSmallIntegerField(default=15)
+    motivo_encerramento = models.CharField(
+        max_length=20,
+        choices=MOTIVOS_ENCERRAMENTO,
+        default='em_aberto',
+    )
+
+    def __str__(self):
+        return f"Sala {self.codigo} (Partida #{self.partida_id})"
+
+
+class PerguntaPartida(models.Model):
+    partida = models.ForeignKey(
+        PartidaCompetitiva,
+        on_delete=models.CASCADE,
+        related_name='perguntas_partida',
+    )
+    pergunta = models.ForeignKey(Pergunta, on_delete=models.CASCADE)
+    ordem = models.PositiveSmallIntegerField()
+
+    class Meta:
+        ordering = ['ordem']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['partida', 'ordem'],
+                name='unique_ordem_por_partida_1v1',
+            ),
+            models.UniqueConstraint(
+                fields=['partida', 'pergunta'],
+                name='unique_pergunta_por_partida_1v1',
+            ),
+        ]
+
+    def __str__(self):
+        return f"Partida #{self.partida_id} - Q{self.ordem}"

@@ -144,7 +144,6 @@
             color: var(--red);
         }
 
-<<<<<<< HEAD
         .alert-success {
             background-color: rgba(138, 201, 38, 0.18);
             color: #456d09;
@@ -156,8 +155,6 @@
         }
 
         /* Botão de Envio (Destaque Verde para Cadastro) */
-=======
->>>>>>> 677942ccba986473054240c98972df8030091c62
         .btn-submit {
             width: 100%;
             padding: 1rem;
@@ -226,105 +223,39 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="primeiro_nome">Nome</label>
-<<<<<<< HEAD
                     <input type="text" id="primeiro_nome" name="primeiro_nome" value="{{ form_data.primeiro_nome|default:'' }}" placeholder="Ex: João" autocomplete="given-name" required autofocus>
-=======
-                    <input
-                        type="text"
-                        id="primeiro_nome"
-                        name="primeiro_nome"
-                        value="{{ valores.primeiro_nome|default:'' }}"
-                        placeholder="Ex: João"
-                        required
-                        autofocus
-                    >
->>>>>>> 677942ccba986473054240c98972df8030091c62
                 </div>
 
                 <div class="form-group">
                     <label for="ultimo_nome">Sobrenome</label>
-<<<<<<< HEAD
                     <input type="text" id="ultimo_nome" name="ultimo_nome" value="{{ form_data.ultimo_nome|default:'' }}" placeholder="Ex: Silva" autocomplete="family-name" required>
-=======
-                    <input
-                        type="text"
-                        id="ultimo_nome"
-                        name="ultimo_nome"
-                        value="{{ valores.ultimo_nome|default:'' }}"
-                        placeholder="Ex: Silva"
-                        required
-                    >
->>>>>>> 677942ccba986473054240c98972df8030091c62
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="email">E-mail Acadêmico</label>
-<<<<<<< HEAD
                 <input type="email" id="email" name="email" value="{{ form_data.email|default:'' }}" placeholder="joao.silva@universidade.edu.br" autocomplete="email" required>
-=======
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value="{{ valores.email|default:'' }}"
-                    placeholder="joao.silva@universidade.edu.br"
-                    required
-                >
->>>>>>> 677942ccba986473054240c98972df8030091c62
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="senha">Criar Senha</label>
-<<<<<<< HEAD
                     <input type="password" id="senha" name="senha" minlength="8" placeholder="Mínimo 8 caract." autocomplete="new-password" required>
-=======
-                    <input
-                        type="password"
-                        id="senha"
-                        name="senha"
-                        placeholder="Mínimo 8 caract."
-                        required
-                    >
->>>>>>> 677942ccba986473054240c98972df8030091c62
                 </div>
 
                 <div class="form-group">
                     <label for="confirmar_senha">Repita a Senha</label>
-<<<<<<< HEAD
                     <input type="password" id="confirmar_senha" name="confirmar_senha" minlength="8" placeholder="Digite novamente" autocomplete="new-password" required>
-=======
-                    <input
-                        type="password"
-                        id="confirmar_senha"
-                        name="confirmar_senha"
-                        placeholder="Digite novamente"
-                        required
-                    >
->>>>>>> 677942ccba986473054240c98972df8030091c62
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="credencial">Você é Aluno ou Professor?</label>
                 <select id="credencial" name="credencial" required>
-<<<<<<< HEAD
                     <!-- Os valores value="1" e value="2" correspondem exatamente ao choices do seu model -->
                     <option value="" disabled {% if not form_data.credencial %}selected{% endif %}>Selecione seu perfil</option>
                     <option value="1" {% if form_data.credencial == '1' %}selected{% endif %}>Aluno</option>
                     <option value="2" {% if form_data.credencial == '2' %}selected{% endif %}>Professor</option>
-=======
-                    <option value="" disabled {% if not valores.credencial %}selected{% endif %}>
-                        Selecione seu perfil
-                    </option>
-                    <option value="1" {% if valores.credencial == '1' %}selected{% endif %}>
-                        Aluno
-                    </option>
-                    <option value="2" {% if valores.credencial == '2' %}selected{% endif %}>
-                        Professor
-                    </option>
->>>>>>> 677942ccba986473054240c98972df8030091c62
                 </select>
             </div>
 

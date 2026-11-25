@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partida 1 vs 1 #{{ partida.id }} - UniQuiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --red: #ff595e;
+            --yellow: #ffca3a;
+            --green: #8ac926;
+            --blue: #1982c4;
+            --purple: #6a4c93;
+
+            --bg-light: #f9f9fc;
+            --text-dark: #2d3142;
+            --text-muted: #555a6e;
+            --border-soft: #e2e5ef;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(255, 89, 94, 0.08) 0%, rgba(106, 76, 147, 0.08) 100%);
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Cabeçalho */
+        .site-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: var(--white);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .site-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0.9rem 5%;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--purple);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--red);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .ws-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background-color: rgba(25, 130, 196, 0.12);
+            color: var(--blue);
+        }
+
+        .ws-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        .ws-badge--ok {
+            background-color: rgba(138, 201, 38, 0.2);
+            color: #456d09;
+        }
+
+        .ws-badge--err {
+            background-color: rgba(255, 89, 94, 0.14);
+            color: var(--red);
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            min-height: 38px;
+            padding: 0.35rem 0.95rem;
+            border-radius: 25px;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-soft);
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 2rem 5% 4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Painel de Espera */
+        .wait-card {
+            background-color: var(--white);
+            border-radius: 22px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
+            border-top: 6px solid var(--purple);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .spinner {
+            width: 54px;
+            height: 54px;
+            border: 5px solid var(--border-soft);
+            border-top-color: var(--red);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .wait-card h1 {
+            font-size: clamp(1.5rem, 3.2vw, 2rem);
+            color: var(--text-dark);
+        }
+
+        .wait-card p {
+            color: var(--text-muted);
+            max-width: 520px;
+        }
+
+        .room-code-box {
+            background-color: var(--bg-light);
+            border: 2px dashed var(--purple);
+            border-radius: 16px;
+            padding: 1rem 1.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .room-code-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .room-code-value {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--purple);
+        }
+
+        .btn-copy {
+            padding: 0.45rem 1.1rem;
+            border-radius: 10px;
+            border: none;
+            background-color: var(--purple);
+            color: var(--white);
+            font: inherit;
+            font-size: 0.86rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-copy:hover {
+            background-color: var(--blue);
+        }
+
+        .btn-cancel {
+            margin-top: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 89, 94, 0.35);
+            background-color: rgba(255, 89, 94, 0.08);
+            color: var(--red);
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-cancel:hover {
+            background-color: var(--red);
+            color: var(--white);
+        }
+
+        /* Placar Superior da Arena */
+        .scoreboard {
+            background-color: var(--white);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .player-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .player-box--right {
+            text-align: right;
+            align-items: flex-end;
+        }
+
+        .player-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .player-score {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--purple);
+        }
+
+        .player-status {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.18rem 0.6rem;
+            border-radius: 20px;
+            background-color: var(--bg-light);
+            color: var(--text-muted);
+        }
+
+        .player-status--done {
+            background-color: rgba(138, 201, 38, 0.2);
+            color: #456d09;
+        }
+
+        .vs-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .round-pill {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 0.22rem 0.75rem;
+            border-radius: 20px;
+            background-color: rgba(106, 76, 147, 0.12);
+            color: var(--purple);
+        }
+
+        .timer-circle {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 4px solid var(--blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--blue);
+            font-variant-numeric: tabular-nums;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .timer-circle--urgent {
+            border-color: var(--red);
+            color: var(--red);
+            background-color: rgba(255, 89, 94, 0.08);
+        }
+
+        .timer-bar-track {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-soft);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--green), var(--blue));
+            transition: width 0.25s linear;
+        }
+
+        .timer-bar-fill--urgent {
+            background: var(--red);
+        }
+
+        /* Card da Pergunta */
+        .quiz-card {
+            background-color: var(--white);
+            border-radius: 22px;
+            padding: 2rem;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
+            border-top: 6px solid var(--red);
+            display: flex;
+            flex-direction: column;
+            gap: 1.35rem;
+        }
+
+        .question-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 0.26rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .tag-cat { background-color: rgba(106, 76, 147, 0.12); color: var(--purple); }
+        .tag-lvl-1 { background-color: rgba(138, 201, 38, 0.18); color: #456d09; }
+        .tag-lvl-2 { background-color: rgba(255, 202, 58, 0.28); color: #7c5600; }
+        .tag-lvl-3 { background-color: rgba(255, 89, 94, 0.15); color: #b8252a; }
+        .tag-pts { background-color: rgba(25, 130, 196, 0.12); color: var(--blue); }
+
+        .question-heading {
+            font-size: clamp(1.2rem, 2.6vw, 1.5rem);
+            color: var(--text-dark);
+            line-height: 1.38;
+        }
+
+        .alternatives-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .alt-btn {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 0.85rem;
+            width: 100%;
+            min-height: 58px;
+            padding: 0.85rem 1.1rem;
+            border-radius: 14px;
+            border: 2px solid var(--border-soft);
+            background-color: var(--bg-light);
+            text-align: left;
+            font: inherit;
+            font-size: 0.98rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
+        }
+
+        .alt-btn:hover:not(:disabled) {
+            border-color: var(--blue);
+            background-color: rgba(25, 130, 196, 0.06);
+            transform: translateX(3px);
+        }
+
+        .alt-btn:disabled {
+            cursor: default;
+        }
+
+        .alt-btn--selected {
+            border-color: var(--blue);
+            background-color: rgba(25, 130, 196, 0.14);
+        }
+
+        .alt-btn--correct {
+            border-color: var(--green) !important;
+            background-color: rgba(138, 201, 38, 0.2) !important;
+        }
+
+        .alt-btn--wrong {
+            border-color: var(--red) !important;
+            background-color: rgba(255, 89, 94, 0.14) !important;
+        }
+
+        .alt-letter {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .alt-letter--0 { background-color: var(--blue); }
+        .alt-letter--1 { background-color: var(--purple); }
+        .alt-letter--2 { background-color: var(--yellow); color: var(--text-dark); }
+        .alt-letter--3 { background-color: var(--red); }
+
+        .round-feedback {
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            font-size: 0.94rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .round-feedback--info {
+            background-color: rgba(25, 130, 196, 0.12);
+            color: var(--blue);
+        }
+
+        .round-feedback--correct {
+            background-color: rgba(138, 201, 38, 0.2);
+            color: #3a5d07;
+            border: 2px solid var(--green);
+        }
+
+        .round-feedback--wrong {
+            background-color: rgba(255, 89, 94, 0.13);
+            color: #9e1e23;
+            border: 2px solid var(--red);
+        }
+
+        /* Tela de Resultado Final */
+        .result-card {
+            background-color: var(--white);
+            border-radius: 22px;
+            padding: 2.3rem 2rem;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+            border-top: 6px solid var(--green);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.15rem;
+        }
+
+        .result-card--defeat { border-top-color: var(--red); }
+        .result-card--draw { border-top-color: var(--yellow); }
+
+        .result-badge {
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 0.3rem 0.95rem;
+            border-radius: 20px;
+            background-color: rgba(106, 76, 147, 0.12);
+            color: var(--purple);
+        }
+
+        .result-card h1 {
+            font-size: clamp(1.7rem, 3.6vw, 2.3rem);
+            color: var(--text-dark);
+        }
+
+        .result-subtitle {
+            color: var(--text-muted);
+            max-width: 600px;
+        }
+
+        .comparison-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 0.4rem;
+        }
+
+        .comp-card {
+            background-color: var(--bg-light);
+            border: 2px solid var(--border-soft);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .comp-card--winner {
+            border-color: var(--green);
+            background-color: rgba(138, 201, 38, 0.12);
+        }
+
+        .comp-name {
+            font-size: 1.08rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .comp-metric {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .comp-metric strong {
+            color: var(--purple);
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0.75rem 1.6rem;
+            border-radius: 12px;
+            background-color: var(--red);
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--purple);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0.75rem 1.4rem;
+            border-radius: 12px;
+            border: 2px solid var(--border-soft);
+            background-color: var(--white);
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .review-card {
+            background-color: var(--white);
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .review-card h2 {
+            font-size: 1.25rem;
+            color: var(--purple);
+        }
+
+        .review-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .review-item {
+            padding: 1rem 1.15rem;
+            border-radius: 14px;
+            background-color: var(--bg-light);
+            border-left: 4px solid var(--purple);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .review-q {
+            font-weight: 600;
+            font-size: 0.96rem;
+        }
+
+        .review-gabarito {
+            font-size: 0.86rem;
+            color: #456d09;
+            font-weight: 600;
+        }
+
+        .review-times {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 680px) {
+            .scoreboard {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .player-box,
+            .player-box--right {
+                align-items: center;
+                text-align: center;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quiz-card {
+                padding: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Barra da partida competitiva">
+            <a href="{% url 'uniquiz:tela-aluno' %}" class="logo">Uni<span>Quiz</span></a>
+            <div class="nav-right">
+                <span id="ws-status" class="ws-badge">
+                    <span class="ws-dot"></span>
+                    <span id="ws-status-text">Conectando...</span>
+                </span>
+                <a href="{% url 'uniquiz:modo-competitivo' %}" class="btn-back">&larr; Lobby 1 vs 1</a>
+            </div>
+        </nav>
+    </header>
+
+    <main
+        id="partida-root"
+        data-partida-id="{{ partida.id }}"
+        data-status-inicial="{{ partida.status }}"
+        data-usuario-id="{{ usuario_id_str }}"
+        data-jogador1-id="{{ partida.jogador1_id }}"
+        data-jogador2-id="{% if partida.jogador2_id %}{{ partida.jogador2_id }}{% endif %}"
+        data-lobby-url="{% url 'uniquiz:modo-competitivo' %}"
+    >
+        <!-- 1. Tela de Espera / Pareamento -->
+        <section id="panel-waiting" class="wait-card {% if partida.status == 'finalizada' %}hidden{% endif %}">
+            <div class="spinner" aria-hidden="true"></div>
+            <h1 id="wait-title">
+                {% if partida.status == 'aguardando' %}
+                    Aguardando oponente...
+                {% else %}
+                    Sincronizando jogadores...
+                {% endif %}
+            </h1>
+            <p id="wait-subtitle">
+                Tema: <strong>{{ categoria_nome }}</strong> • Até <strong>{{ total_perguntas }} perguntas</strong> • <strong>{{ tempo_limite }}s</strong> por questão.
+            </p>
+
+            {% if sala and sala.codigo and partida.status == 'aguardando' %}
+                <div class="room-code-box">
+                    <span class="room-code-label">Código de convite desta sala</span>
+                    <span id="room-code" class="room-code-value">{{ sala.codigo }}</span>
+                    <button type="button" id="btn-copy-code" class="btn-copy">Copiar Código</button>
+                </div>
+            {% endif %}
+
+            {% if partida.status == 'aguardando' and partida.jogador1_id == user.id %}
+                <form action="{% url 'uniquiz:cancelar-partida-1v1' partida.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-cancel">Cancelar Espera</button>
+                </form>
+            {% endif %}
+        </section>
+
+        <!-- 2. Arena do Duelo Sincronizado -->
+        <section id="panel-arena" class="hidden" aria-live="polite">
+            <div class="scoreboard">
+                <div class="player-box">
+                    <span id="j1-name" class="player-name">{{ jogador1_nome }}</span>
+                    <span id="j1-score" class="player-score">0 acertos • 0.00s</span>
+                    <span id="j1-status" class="player-status">Aguardando...</span>
+                </div>
+
+                <div class="vs-center">
+                    <span id="round-counter" class="round-pill">Pergunta 1 / {{ total_perguntas }}</span>
+                    <div id="timer-circle" class="timer-circle">{{ tempo_limite }}</div>
+                </div>
+
+                <div class="player-box player-box--right">
+                    <span id="j2-name" class="player-name">{{ jogador2_nome }}</span>
+                    <span id="j2-score" class="player-score">0 acertos • 0.00s</span>
+                    <span id="j2-status" class="player-status">Aguardando...</span>
+                </div>
+            </div>
+
+            <div class="timer-bar-track" aria-hidden="true">
+                <div id="timer-bar-fill" class="timer-bar-fill"></div>
+            </div>
+
+            <article class="quiz-card">
+                <div class="question-meta">
+                    <span id="q-category" class="tag tag-cat">Categoria</span>
+                    <span id="q-level" class="tag tag-lvl-1">Fácil</span>
+                    <span id="q-points" class="tag tag-pts">10 pts</span>
+                </div>
+
+                <h1 id="q-text" class="question-heading">Carregando pergunta...</h1>
+
+                <div id="alternatives-container" class="alternatives-list"></div>
+
+                <div id="round-feedback" class="round-feedback round-feedback--info hidden"></div>
+            </article>
+        </section>
+
+        <!-- 3. Tela de Resultado Final -->
+        <section id="panel-result" class="{% if partida.status != 'finalizada' %}hidden{% endif %}">
+            <div id="result-card" class="result-card">
+                <span id="result-criterio-badge" class="result-badge">Partida Finalizada</span>
+                <h1 id="result-title">Resultado do Duelo</h1>
+                <p id="result-subtitle" class="result-subtitle"></p>
+
+                <div id="comparison-grid" class="comparison-grid"></div>
+
+                <div class="result-actions">
+                    <a href="{% url 'uniquiz:modo-competitivo' %}" class="btn-primary">Nova Partida 1 vs 1</a>
+                    <a href="{% url 'uniquiz:tela-aluno' %}" class="btn-secondary">Área do Aluno</a>
+                </div>
+            </div>
+
+            <section id="review-section" class="review-card hidden">
+                <h2>Resumo das Perguntas</h2>
+                <ul id="review-list" class="review-list"></ul>
+            </section>
+        </section>
+    </main>
+
+    {% if resultado_final %}
+        {{ resultado_final|json_script:"resultado-inicial-data" }}
+    {% endif %}
+
+    <script>
+        (() => {
+            const rootEl = document.getElementById('partida-root');
+            const PARTIDA_ID = Number(rootEl.dataset.partidaId);
+            const PARTIDA_STATUS_INICIAL = rootEl.dataset.statusInicial || '';
+            const USUARIO_ID = rootEl.dataset.usuarioId || '';
+            const JOGADOR1_ID = rootEl.dataset.jogador1Id || '';
+            const JOGADOR2_ID = rootEl.dataset.jogador2Id || '';
+            const LOBBY_URL = rootEl.dataset.lobbyUrl || '/aluno/competitivo/';
+            const LETTERS = ['A', 'B', 'C', 'D'];
+
+            const wsStatus = document.getElementById('ws-status');
+            const wsStatusText = document.getElementById('ws-status-text');
+
+            const panelWaiting = document.getElementById('panel-waiting');
+            const panelArena = document.getElementById('panel-arena');
+            const panelResult = document.getElementById('panel-result');
+
+            const waitTitle = document.getElementById('wait-title');
+            const btnCopyCode = document.getElementById('btn-copy-code');
+            const roomCodeEl = document.getElementById('room-code');
+
+            const j1NameEl = document.getElementById('j1-name');
+            const j1ScoreEl = document.getElementById('j1-score');
+            const j1StatusEl = document.getElementById('j1-status');
+            const j2NameEl = document.getElementById('j2-name');
+            const j2ScoreEl = document.getElementById('j2-score');
+            const j2StatusEl = document.getElementById('j2-status');
+
+            const roundCounterEl = document.getElementById('round-counter');
+            const timerCircleEl = document.getElementById('timer-circle');
+            const timerBarFillEl = document.getElementById('timer-bar-fill');
+
+            const qCategoryEl = document.getElementById('q-category');
+            const qLevelEl = document.getElementById('q-level');
+            const qPointsEl = document.getElementById('q-points');
+            const qTextEl = document.getElementById('q-text');
+            const alternativesContainer = document.getElementById('alternatives-container');
+            const roundFeedbackEl = document.getElementById('round-feedback');
+
+            const resultCardEl = document.getElementById('result-card');
+            const resultBadgeEl = document.getElementById('result-criterio-badge');
+            const resultTitleEl = document.getElementById('result-title');
+            const resultSubtitleEl = document.getElementById('result-subtitle');
+            const comparisonGridEl = document.getElementById('comparison-grid');
+            const reviewSectionEl = document.getElementById('review-section');
+            const reviewListEl = document.getElementById('review-list');
+
+            let socket = null;
+            let countdownInterval = null;
+            let currentQuestionId = null;
+            let mySelectedAltId = null;
+            let answeredThisRound = false;
+            let activeJ1Id = JOGADOR1_ID;
+            let activeJ2Id = JOGADOR2_ID;
+
+            if (btnCopyCode && roomCodeEl) {
+                btnCopyCode.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(roomCodeEl.textContent.trim());
+                        btnCopyCode.textContent = 'Código Copiado!';
+                        setTimeout(() => { btnCopyCode.textContent = 'Copiar Código'; }, 2000);
+                    } catch {
+                        btnCopyCode.textContent = roomCodeEl.textContent.trim();
+                    }
+                });
+            }
+
+            function setWsBadge(text, state) {
+                wsStatusText.textContent = text;
+                wsStatus.className = 'ws-badge' + (state ? ` ws-badge--${state}` : '');
+            }
+
+            function stopTimer() {
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+            }
+
+            function startTimer(remainingSec, totalSec) {
+                stopTimer();
+                let remaining = Number(remainingSec);
+                const total = Number(totalSec) || 15;
+
+                const paint = () => {
+                    const sec = Math.max(0, Math.ceil(remaining));
+                    timerCircleEl.textContent = String(sec);
+                    const pct = Math.max(0, Math.min(100, (remaining / total) * 100));
+                    timerBarFillEl.style.width = `${pct}%`;
+
+                    const urgent = sec <= 5;
+                    timerCircleEl.classList.toggle('timer-circle--urgent', urgent);
+                    timerBarFillEl.classList.toggle('timer-bar-fill--urgent', urgent);
+                };
+
+                paint();
+                countdownInterval = setInterval(() => {
+                    remaining = Math.max(0, remaining - 0.25);
+                    paint();
+                    if (remaining <= 0) {
+                        stopTimer();
+                    }
+                }, 250);
+            }
+
+            function syncPlayerIds(jogadores) {
+                if (!jogadores) return;
+                const ids = Object.keys(jogadores);
+                if (!activeJ1Id && ids[0]) activeJ1Id = ids[0];
+                if (!activeJ2Id) {
+                    const other = ids.find((id) => id !== activeJ1Id);
+                    if (other) activeJ2Id = other;
+                }
+            }
+
+            function updateScoreboard(jogadores) {
+                if (!jogadores) return;
+                syncPlayerIds(jogadores);
+
+                const j1 = jogadores[activeJ1Id];
+                const j2 = jogadores[activeJ2Id];
+
+                if (j1) {
+                    j1NameEl.textContent = j1.id === USUARIO_ID ? `${j1.nome} (Você)` : j1.nome;
+                    j1ScoreEl.textContent = `${j1.acertos} acerto${j1.acertos === 1 ? '' : 's'} • ${Number(j1.tempo_corretas).toFixed(2)}s`;
+                }
+                if (j2) {
+                    j2NameEl.textContent = j2.id === USUARIO_ID ? `${j2.nome} (Você)` : j2.nome;
+                    j2ScoreEl.textContent = `${j2.acertos} acerto${j2.acertos === 1 ? '' : 's'} • ${Number(j2.tempo_corretas).toFixed(2)}s`;
+                }
+            }
+
+            function setPlayerStatus(uid, text, done) {
+                const el = uid === activeJ1Id ? j1StatusEl : (uid === activeJ2Id ? j2StatusEl : null);
+                if (!el) return;
+                el.textContent = text;
+                el.classList.toggle('player-status--done', Boolean(done));
+            }
+
+            function renderQuestion(msg) {
+                panelWaiting.classList.add('hidden');
+                panelResult.classList.add('hidden');
+                panelArena.classList.remove('hidden');
+
+                const q = msg.pergunta;
+                currentQuestionId = q.id;
+                mySelectedAltId = null;
+                answeredThisRound = false;
+
+                updateScoreboard(msg.jogadores);
+                setPlayerStatus(activeJ1Id, 'Respondendo...', false);
+                setPlayerStatus(activeJ2Id, 'Respondendo...', false);
+
+                roundCounterEl.textContent = `Pergunta ${msg.numero} / ${msg.total}`;
+                qCategoryEl.textContent = q.categoria;
+                qLevelEl.textContent = q.nivel_display;
+                qLevelEl.className = `tag tag-lvl-${q.nivel}`;
+                qPointsEl.textContent = `${q.pontuacao} pts`;
+                qTextEl.textContent = q.texto;
+
+                roundFeedbackEl.classList.add('hidden');
+                roundFeedbackEl.textContent = '';
+
+                alternativesContainer.replaceChildren();
+                q.alternativas.forEach((alt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'alt-btn';
+                    btn.dataset.altId = String(alt.id);
+
+                    const letter = document.createElement('span');
+                    letter.className = `alt-letter alt-letter--${idx % 4}`;
+                    letter.textContent = LETTERS[idx] || String(idx + 1);
+
+                    const txt = document.createElement('span');
+                    txt.textContent = alt.texto;
+
+                    const badge = document.createElement('span');
+                    badge.className = 'alt-state-label';
+
+                    btn.append(letter, txt, badge);
+                    btn.addEventListener('click', () => enviarResposta(q.id, alt.id, btn));
+                    alternativesContainer.appendChild(btn);
+                });
+
+                startTimer(msg.tempo_limite, msg.tempo_limite_total || msg.tempo_limite);
+            }
+
+            function enviarResposta(perguntaId, alternativaId, clickedBtn) {
+                if (answeredThisRound || !socket || socket.readyState !== WebSocket.OPEN) {
+                    return;
+                }
+                answeredThisRound = true;
+                mySelectedAltId = alternativaId;
+
+                alternativesContainer.querySelectorAll('.alt-btn').forEach((b) => {
+                    b.disabled = true;
+                });
+                clickedBtn.classList.add('alt-btn--selected');
+
+                roundFeedbackEl.className = 'round-feedback round-feedback--info';
+                roundFeedbackEl.textContent = 'Resposta enviada! Aguardando o oponente...';
+                roundFeedbackEl.classList.remove('hidden');
+
+                socket.send(JSON.stringify({
+                    acao: 'responder',
+                    pergunta_id: perguntaId,
+                    alternativa_id: alternativaId,
+                }));
+            }
+
+            function renderRoundResult(msg) {
+                stopTimer();
+                updateScoreboard(msg.jogadores);
+
+                const minhas = msg.respostas ? msg.respostas[USUARIO_ID] : null;
+                const corretaId = msg.alternativa_correta_id;
+
+                alternativesContainer.querySelectorAll('.alt-btn').forEach((btn) => {
+                    btn.disabled = true;
+                    const altId = Number(btn.dataset.altId);
+                    if (altId === corretaId) {
+                        btn.classList.add('alt-btn--correct');
+                    } else if (minhas && minhas.alternativa_id === altId && !minhas.acertou) {
+                        btn.classList.add('alt-btn--wrong');
+                    }
+                });
+
+                if (minhas && minhas.acertou) {
+                    roundFeedbackEl.className = 'round-feedback round-feedback--correct';
+                    roundFeedbackEl.textContent = `Correto em ${Number(minhas.tempo).toFixed(2)}s! ${msg.ultima_rodada ? 'Calculando resultado final...' : `Próxima pergunta em ${msg.pausa_segundos}s...`}`;
+                } else if (minhas && minhas.timeout) {
+                    roundFeedbackEl.className = 'round-feedback round-feedback--wrong';
+                    roundFeedbackEl.textContent = `Tempo esgotado! Gabarito: ${msg.alternativa_correta_texto}.`;
+                } else {
+                    roundFeedbackEl.className = 'round-feedback round-feedback--wrong';
+                    roundFeedbackEl.textContent = `Incorreto! Gabarito: ${msg.alternativa_correta_texto}.`;
+                }
+                roundFeedbackEl.classList.remove('hidden');
+            }
+
+            function renderFinalResult(resultado) {
+                stopTimer();
+                panelWaiting.classList.add('hidden');
+                panelArena.classList.add('hidden');
+                panelResult.classList.remove('hidden');
+
+                const euVenci = resultado.vencedor_id && resultado.vencedor_id === USUARIO_ID;
+                const empate = !resultado.vencedor_id;
+
+                resultCardEl.className = 'result-card' + (empate ? ' result-card--draw' : (euVenci ? '' : ' result-card--defeat'));
+
+                if (resultado.motivo === 'desconexao') {
+                    resultBadgeEl.textContent = 'Encerrada por Desconexão';
+                } else if (resultado.criterio === 'tempo_desempate') {
+                    resultBadgeEl.textContent = 'Decidido no Desempate por Tempo';
+                } else if (resultado.criterio === 'acertos') {
+                    resultBadgeEl.textContent = 'Decidido por Número de Acertos';
+                } else {
+                    resultBadgeEl.textContent = 'Empate Absoluto';
+                }
+
+                if (empate) {
+                    resultTitleEl.textContent = 'Empate na Partida!';
+                    resultSubtitleEl.textContent = 'Ambos os jogadores terminaram exatamente com o mesmo número de acertos e o mesmo tempo acumulado.';
+                } else if (euVenci) {
+                    resultTitleEl.textContent = 'Parabéns, você venceu!';
+                    if (resultado.motivo === 'desconexao') {
+                        resultSubtitleEl.textContent = 'Seu oponente se desconectou antes do término da partida e a vitória foi concedida a você.';
+                    } else if (resultado.criterio === 'tempo_desempate') {
+                        resultSubtitleEl.textContent = 'Empate em acertos! Você venceu pelo menor tempo acumulado nas perguntas acertadas.';
+                    } else {
+                        resultSubtitleEl.textContent = 'Você respondeu corretamente a mais perguntas que seu oponente.';
+                    }
+                } else {
+                    resultTitleEl.textContent = `${resultado.vencedor_nome || 'Oponente'} venceu o duelo`;
+                    if (resultado.motivo === 'desconexao') {
+                        resultSubtitleEl.textContent = 'A partida foi encerrada por desconexão antes do término.';
+                    } else if (resultado.criterio === 'tempo_desempate') {
+                        resultSubtitleEl.textContent = 'Empate em acertos! O oponente venceu pelo menor tempo acumulado nas perguntas acertadas.';
+                    } else {
+                        resultSubtitleEl.textContent = 'O oponente acertou mais perguntas nesta partida.';
+                    }
+                }
+
+                comparisonGridEl.replaceChildren();
+                [resultado.jogador1, resultado.jogador2].filter(Boolean).forEach((p) => {
+                    const card = document.createElement('div');
+                    const isWinner = resultado.vencedor_id === p.id;
+                    card.className = 'comp-card' + (isWinner ? ' comp-card--winner' : '');
+
+                    const name = document.createElement('div');
+                    name.className = 'comp-name';
+                    name.textContent = `${p.nome}${p.id === USUARIO_ID ? ' (Você)' : ''}${isWinner ? ' 🏆' : ''}`;
+
+                    const m1 = document.createElement('div');
+                    m1.className = 'comp-metric';
+                    m1.innerHTML = `Acertos: <strong>${p.acertos}</strong> • Erros: <strong>${p.erros}</strong>`;
+
+                    const m2 = document.createElement('div');
+                    m2.className = 'comp-metric';
+                    m2.innerHTML = `Tempo nas corretas (desempate): <strong>${Number(p.tempo_corretas).toFixed(2)}s</strong>`;
+
+                    card.append(name, m1, m2);
+                    comparisonGridEl.appendChild(card);
+                });
+
+                if (resultado.revisao && resultado.revisao.length > 0) {
+                    reviewSectionEl.classList.remove('hidden');
+                    reviewListEl.replaceChildren();
+                    const nomeJ1 = resultado.jogador1 ? resultado.jogador1.nome : 'Jogador 1';
+                    const nomeJ2 = resultado.jogador2 ? resultado.jogador2.nome : 'Jogador 2';
+
+                    resultado.revisao.forEach((item) => {
+                        const li = document.createElement('li');
+                        li.className = 'review-item';
+
+                        const qEl = document.createElement('p');
+                        qEl.className = 'review-q';
+                        qEl.textContent = `#${item.ordem} (${item.categoria}) — ${item.texto}`;
+
+                        const gabEl = document.createElement('p');
+                        gabEl.className = 'review-gabarito';
+                        gabEl.textContent = `Gabarito: ${item.correta}`;
+
+                        const timesEl = document.createElement('div');
+                        timesEl.className = 'review-times';
+                        const j1Txt = item.j1.respondeu
+                            ? `${nomeJ1}: ${item.j1.acertou ? '✓ Acertou' : '✕ Errou'} (${Number(item.j1.tempo).toFixed(2)}s)`
+                            : `${nomeJ1}: sem resposta`;
+                        const j2Txt = item.j2.respondeu
+                            ? `${nomeJ2}: ${item.j2.acertou ? '✓ Acertou' : '✕ Errou'} (${Number(item.j2.tempo).toFixed(2)}s)`
+                            : `${nomeJ2}: sem resposta`;
+
+                        const s1 = document.createElement('span');
+                        s1.textContent = j1Txt;
+                        const s2 = document.createElement('span');
+                        s2.textContent = j2Txt;
+                        timesEl.append(s1, s2);
+
+                        li.append(qEl, gabEl, timesEl);
+                        reviewListEl.appendChild(li);
+                    });
+                }
+            }
+
+            // Se a partida já foi finalizada anteriormente, exibe direto o resultado salvo no banco
+            const initialResultScript = document.getElementById('resultado-inicial-data');
+            if (PARTIDA_STATUS_INICIAL === 'finalizada' && initialResultScript) {
+                const parsed = JSON.parse(initialResultScript.textContent);
+                setWsBadge('Partida Finalizada', 'ok');
+                renderFinalResult(parsed);
+                return;
+            }
+
+            // Conexão WebSocket em tempo real
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const wsUrl = `${wsProtocol}://${window.location.host}/ws/competitivo/partida/${PARTIDA_ID}/`;
+            socket = new WebSocket(wsUrl);
+
+            socket.addEventListener('open', () => {
+                setWsBadge('Conectado em Tempo Real', 'ok');
+            });
+
+            socket.addEventListener('close', () => {
+                stopTimer();
+                if (panelResult.classList.contains('hidden')) {
+                    setWsBadge('Conexão encerrada', 'err');
+                }
+            });
+
+            socket.addEventListener('error', () => {
+                setWsBadge('Erro de conexão', 'err');
+            });
+
+            socket.addEventListener('message', (event) => {
+                const msg = JSON.parse(event.data);
+
+                switch (msg.tipo) {
+                    case 'aguardando_oponente':
+                        waitTitle.textContent = 'Aguardando oponente entrar na sala...';
+                        break;
+                    case 'aguardando_conexao':
+                        waitTitle.textContent = msg.mensagem || 'Oponente encontrado! Sincronizando...';
+                        updateScoreboard(msg.jogadores);
+                        break;
+                    case 'partida_iniciada':
+                        updateScoreboard(msg.jogadores);
+                        break;
+                    case 'nova_pergunta':
+                        renderQuestion(msg);
+                        break;
+                    case 'resposta_registrada':
+                        setPlayerStatus(USUARIO_ID, `Respondido (${Number(msg.tempo).toFixed(2)}s)`, true);
+                        break;
+                    case 'jogador_respondeu':
+                        if (msg.usuario_id !== USUARIO_ID) {
+                            setPlayerStatus(msg.usuario_id, 'Já respondeu!', true);
+                        }
+                        break;
+                    case 'resultado_rodada':
+                        renderRoundResult(msg);
+                        break;
+                    case 'partida_finalizada':
+                        setWsBadge('Partida Finalizada', 'ok');
+                        renderFinalResult(msg.resultado);
+                        if (socket && socket.readyState === WebSocket.OPEN) {
+                            socket.close();
+                        }
+                        break;
+                    case 'partida_cancelada':
+                        window.location.href = LOBBY_URL;
+                        break;
+                }
+            });
+        })();
+    </script>
+
+</body>
+</html>
