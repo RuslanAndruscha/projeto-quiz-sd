@@ -1007,15 +1007,19 @@
                     }
                 });
 
+                const sufixoTransicao = msg.ultima_rodada
+                    ? ' Calculando resultado final...'
+                    : ` Próxima pergunta em ${msg.pausa_segundos}s...`;
+
                 if (minhas && minhas.acertou) {
                     roundFeedbackEl.className = 'round-feedback round-feedback--correct';
-                    roundFeedbackEl.textContent = `Correto em ${Number(minhas.tempo).toFixed(2)}s! ${msg.ultima_rodada ? 'Calculando resultado final...' : `Próxima pergunta em ${msg.pausa_segundos}s...`}`;
+                    roundFeedbackEl.textContent = `Correto em ${Number(minhas.tempo).toFixed(2)}s!${sufixoTransicao}`;
                 } else if (minhas && minhas.timeout) {
                     roundFeedbackEl.className = 'round-feedback round-feedback--wrong';
-                    roundFeedbackEl.textContent = `Tempo esgotado! Gabarito: ${msg.alternativa_correta_texto}.`;
+                    roundFeedbackEl.textContent = `Tempo esgotado! Gabarito: ${msg.alternativa_correta_texto}.${sufixoTransicao}`;
                 } else {
                     roundFeedbackEl.className = 'round-feedback round-feedback--wrong';
-                    roundFeedbackEl.textContent = `Incorreto! Gabarito: ${msg.alternativa_correta_texto}.`;
+                    roundFeedbackEl.textContent = `Incorreto! Gabarito: ${msg.alternativa_correta_texto}.${sufixoTransicao}`;
                 }
                 roundFeedbackEl.classList.remove('hidden');
             }
@@ -1082,7 +1086,11 @@
                     m2.className = 'comp-metric';
                     m2.innerHTML = `Tempo nas corretas (desempate): <strong>${Number(p.tempo_corretas).toFixed(2)}s</strong>`;
 
-                    card.append(name, m1, m2);
+                    const m3 = document.createElement('div');
+                    m3.className = 'comp-metric';
+                    m3.innerHTML = `Pontos ganhos: <strong>+${Number(p.pontos || 0)} pts</strong>`;
+
+                    card.append(name, m1, m2, m3);
                     comparisonGridEl.appendChild(card);
                 });
 

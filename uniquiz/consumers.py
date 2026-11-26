@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import time
 
 from channels.db import database_sync_to_async
@@ -22,6 +23,8 @@ from .views_competitivo import (
     nome_exibicao_usuario,
 )
 
+logger = logging.getLogger(__name__)
+
 PAUSA_ENTRE_RODADAS_SEGUNDOS = 3
 
 # Estado em memória por partida ativa (usado em ambiente local com InMemoryChannelLayer)
@@ -35,6 +38,7 @@ def _obter_ou_criar_estado(partida_id):
             'lock': asyncio.Lock(),
             'canais_por_usuario': {},  # {user_id_str: set(channel_names)}
             'iniciada': False,
+            'rodadas_concluidas': False,
             'finalizada': False,
             'indice_atual': 0,
             'perguntas': [],
@@ -48,6 +52,15 @@ def _obter_ou_criar_estado(partida_id):
         }
         ESTADOS_PARTIDAS[partida_id] = estado
     return estado
+
+
+def _cancelar_timer_task(estado):
+    """Cancela a task de timer apenas se ela não for a própria task em execução."""
+    task = estado.get('timer_task')
+    current = asyncio.current_task()
+    if task and not task.done() and task is not current:
+        task.cancel()
+    estado['timer_task'] = None
 
 
 class Partida1v1Consumer(AsyncWebsocketConsumer):
@@ -135,17 +148,32 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
                 if not estado['iniciada'] and j1_conectado and j2_conectado:
                     perguntas = await self._carregar_perguntas_partida()
                     estado['perguntas'] = perguntas
+                    progresso = await self._carregar_progresso_partida_db(perguntas, j1_id, j2_id)
+                    for uid, stats in progresso['jogadores'].items():
+                        if uid in estado['jogadores']:
+                            estado['jogadores'][uid].update(stats)
+
+                    indice_inicial = progresso['indice_inicial']
                     estado['iniciada'] = True
-                    payloads_para_enviar.append({
-                        'tipo': 'partida_iniciada',
-                        'categoria': dados_partida['categoria'],
-                        'total_perguntas': len(perguntas),
-                        'tempo_limite': estado['tempo_limite'],
-                        'jogadores': estado['jogadores'],
-                    })
-                    payload_rodada = await self._preparar_rodada_locked(estado, 0)
-                    if payload_rodada:
-                        payloads_para_enviar.append(payload_rodada)
+
+                    if indice_inicial >= len(perguntas):
+                        estado['rodadas_concluidas'] = True
+                        payload_final = await self._finalizar_partida_locked(estado, motivo='normal')
+                        if payload_final:
+                            payloads_para_enviar.append(payload_final)
+                    else:
+                        payloads_para_enviar.append({
+                            'tipo': 'partida_iniciada',
+                            'categoria': dados_partida['categoria'],
+                            'total_perguntas': len(perguntas),
+                            'tempo_limite': estado['tempo_limite'],
+                            'jogadores': estado['jogadores'],
+                        })
+                        payload_rodada = await self._preparar_rodada_locked(estado, indice_inicial)
+                        if progresso['respostas_rodada_inicial']:
+                            estado['respostas_rodada'].update(progresso['respostas_rodada_inicial'])
+                        if payload_rodada:
+                            payloads_para_enviar.append(payload_rodada)
                 elif not estado['iniciada']:
                     payload_privado = {
                         'tipo': 'aguardando_conexao',
@@ -165,6 +193,12 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
                         'tempo_limite_total': estado['tempo_limite'],
                         'jogadores': estado['jogadores'],
                         'pergunta': self._serializar_pergunta_publica(q),
+                    }
+                else:
+                    resultado = await self._obter_resultado_final_db()
+                    payload_privado = {
+                        'tipo': 'partida_finalizada',
+                        'resultado': resultado,
                     }
 
         if payload_privado:
@@ -194,16 +228,22 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
 
             ainda_conectado = bool(estado['canais_por_usuario'].get(self.user_id))
             if estado['iniciada'] and not estado['finalizada'] and not ainda_conectado:
-                vencedor_id = (
-                    estado['jogador2_id']
-                    if self.user_id == estado['jogador1_id']
-                    else estado['jogador1_id']
-                )
-                payload_final = await self._finalizar_partida_locked(
-                    estado,
-                    motivo='desconexao',
-                    vencedor_forcado_id=vencedor_id,
-                )
+                if estado.get('rodadas_concluidas'):
+                    payload_final = await self._finalizar_partida_locked(
+                        estado,
+                        motivo='normal',
+                    )
+                else:
+                    vencedor_id = (
+                        estado['jogador2_id']
+                        if self.user_id == estado['jogador1_id']
+                        else estado['jogador1_id']
+                    )
+                    payload_final = await self._finalizar_partida_locked(
+                        estado,
+                        motivo='desconexao',
+                        vencedor_forcado_id=vencedor_id,
+                    )
 
             if not estado['canais_por_usuario'] and (not estado['iniciada'] or estado['finalizada']):
                 ESTADOS_PARTIDAS.pop(self.partida_id, None)
@@ -293,8 +333,7 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
             })
 
             if len(estado['respostas_rodada']) >= 2:
-                if estado['timer_task'] and not estado['timer_task'].done():
-                    estado['timer_task'].cancel()
+                _cancelar_timer_task(estado)
                 payload_rodada = await self._encerrar_rodada_locked(
                     estado,
                     estado['indice_atual'],
@@ -345,8 +384,7 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
         estado['respostas_rodada'] = {}
         estado['rodada_iniciada_em'] = time.monotonic()
 
-        if estado['timer_task'] and not estado['timer_task'].done():
-            estado['timer_task'].cancel()
+        _cancelar_timer_task(estado)
 
         estado['timer_task'] = asyncio.create_task(
             self._temporizador_rodada(self.partida_id, indice, estado['tempo_limite'])
@@ -374,13 +412,16 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
             return
 
         payload_rodada = None
-        async with estado['lock']:
-            if estado['finalizada'] or estado['indice_atual'] != indice_esperado:
-                return
-            payload_rodada = await self._encerrar_rodada_locked(estado, indice_esperado)
+        try:
+            async with estado['lock']:
+                if estado['finalizada'] or estado['indice_atual'] != indice_esperado:
+                    return
+                payload_rodada = await self._encerrar_rodada_locked(estado, indice_esperado)
 
-        if payload_rodada:
-            await self._broadcast(payload_rodada)
+            if payload_rodada:
+                await self._broadcast(payload_rodada)
+        except Exception:
+            logger.exception('Erro no temporizador da rodada %s da partida %s', indice_esperado, partida_id)
 
     async def _encerrar_rodada_locked(self, estado, indice_esperado):
         if estado['finalizada'] or estado['indice_atual'] != indice_esperado:
@@ -404,7 +445,10 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
                 }
 
         ultima_rodada = (indice_esperado + 1) >= len(estado['perguntas'])
+        if ultima_rodada:
+            estado['rodadas_concluidas'] = True
 
+        _cancelar_timer_task(estado)
         estado['timer_task'] = asyncio.create_task(
             self._avancar_apos_pausa(self.partida_id, indice_esperado + 1)
         )
@@ -432,26 +476,34 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
             return
 
         payload = None
-        async with estado['lock']:
-            if estado['finalizada']:
-                return
-            payload = await self._preparar_rodada_locked(estado, proximo_indice)
+        try:
+            async with estado['lock']:
+                if estado['finalizada']:
+                    return
+                payload = await self._preparar_rodada_locked(estado, proximo_indice)
 
-        if payload:
-            await self._broadcast(payload)
+            if payload:
+                await self._broadcast(payload)
+        except Exception:
+            logger.exception('Erro ao avançar/finalizar partida %s no índice %s', partida_id, proximo_indice)
 
     async def _finalizar_partida_locked(self, estado, motivo='normal', vencedor_forcado_id=None):
         if estado['finalizada']:
             return None
 
         estado['finalizada'] = True
-        if estado['timer_task'] and not estado['timer_task'].done():
-            estado['timer_task'].cancel()
+        _cancelar_timer_task(estado)
 
-        resultado = await self._persistir_finalizacao_db(
-            motivo=motivo,
-            vencedor_forcado_id=vencedor_forcado_id,
-        )
+        try:
+            resultado = await self._persistir_finalizacao_db(
+                motivo=motivo,
+                vencedor_forcado_id=vencedor_forcado_id,
+            )
+        except Exception:
+            estado['finalizada'] = False
+            logger.exception('Erro ao persistir finalização da partida %s', self.partida_id)
+            raise
+
         return {
             'tipo': 'partida_finalizada',
             'resultado': resultado,
@@ -573,10 +625,54 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
                 )
 
     @database_sync_to_async
+    def _carregar_progresso_partida_db(self, perguntas, j1_id, j2_id):
+        logs = list(
+            RespostaLog.objects.filter(partida_competitiva_id=self.partida_id)
+            .select_related('pergunta')
+        )
+        jogadores = {
+            uid: {'acertos': 0, 'tempo_corretas': 0.0, 'pontos': 0}
+            for uid in (j1_id, j2_id)
+            if uid
+        }
+        respostas_por_pergunta = {}
+        for log in logs:
+            uid = str(log.usuario_id)
+            respostas_por_pergunta.setdefault(log.pergunta_id, {})[uid] = {
+                'acertou': bool(log.acertou),
+                'tempo': round(float(log.tempo_resposta_segundos), 2),
+                'alternativa_id': None,
+                'timeout': False,
+            }
+            if uid in jogadores and log.acertou:
+                jogadores[uid]['acertos'] += 1
+                jogadores[uid]['tempo_corretas'] = round(
+                    jogadores[uid]['tempo_corretas'] + float(log.tempo_resposta_segundos),
+                    2,
+                )
+                jogadores[uid]['pontos'] += int(log.pergunta.pontuacao)
+
+        jogadores_esperados = {uid for uid in (j1_id, j2_id) if uid}
+        indice_inicial = len(perguntas)
+        respostas_rodada_inicial = {}
+        for idx, q in enumerate(perguntas):
+            respostas_q = respostas_por_pergunta.get(q['id'], {})
+            if not jogadores_esperados.issubset(respostas_q.keys()):
+                indice_inicial = idx
+                respostas_rodada_inicial = respostas_q
+                break
+
+        return {
+            'jogadores': jogadores,
+            'indice_inicial': indice_inicial,
+            'respostas_rodada_inicial': respostas_rodada_inicial,
+        }
+
+    @database_sync_to_async
     def _persistir_finalizacao_db(self, motivo='normal', vencedor_forcado_id=None):
         with transaction.atomic():
             partida = (
-                PartidaCompetitiva.objects.select_for_update()
+                PartidaCompetitiva.objects.select_for_update(of=('self',))
                 .select_related('categoria', 'jogador1', 'jogador2')
                 .get(pk=self.partida_id)
             )
@@ -602,7 +698,7 @@ class Partida1v1Consumer(AsyncWebsocketConsumer):
                 # Soma os pontos dos acertos da partida à pontuação acumulada de cada jogador
                 for uid, stats in calculo['jogadores'].items():
                     if stats['pontos'] > 0:
-                        Usuario.objects.select_for_update().filter(pk=uid).update(
+                        Usuario.objects.filter(pk=uid).update(
                             pontuacao_total=F('pontuacao_total') + stats['pontos']
                         )
 
