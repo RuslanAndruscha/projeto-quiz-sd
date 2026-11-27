@@ -1,0 +1,49 @@
+#alternativa_set-group td.original p,
+#alternativa_set-group [hidden] {
+    display: none !important;
+}
+
+#alternativa_set-group td.field-texto {
+    min-width: 30rem;
+}
+
+#alternativa_set-group .alternativa-display {
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+#alternativa_set-group .alternativa-action,
+#alternativa_set-group .alternativa-confirm {
+    cursor: pointer;
+    vertical-align: middle;
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0;
+    box-shadow: none !important;
+}
+
+#alternativa_set-group .alternativa-action {
+    margin: 0 0.35rem;
+}
+
+#alternativa_set-group .alternativa-action img {
+    width: 24px;
+    height: 24px;
+}
+
+#alternativa_set-group .alternativa-confirm {
+    color: #198754;
+    font-size: 1.3rem;
+    padding: 0.2rem 0.5rem;
+}
+
+#alternativa_set-group td.delete {
+    text-align: center;
+}
+
+#alternativa_set-group th.alternativa-edit-header,
+#alternativa_set-group td.alternativa-edit-cell {
+    width: 8rem;
+    text-align: center;
+    white-space: nowrap;
+}
