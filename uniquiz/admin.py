@@ -55,6 +55,7 @@ class PerguntaAdmin(admin.ModelAdmin):
 
 @admin.register(Usuario)
 class CustomUserAdmin(UserAdmin):
+    list_filter = ('credencial',) + UserAdmin.list_filter
     fieldsets = UserAdmin.fieldsets + (
         ('Informações do Jogo', {'fields': ('credencial', 'curso', 'pontuacao_total')}),
     )
