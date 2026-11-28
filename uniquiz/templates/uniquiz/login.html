@@ -1,3 +1,5 @@
+{% load socialaccount %}
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -172,6 +174,34 @@
         .register-link:hover span {
             color: var(--purple);
         }
+
+        .google-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.9rem 1rem;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            background: var(--white);
+            color: var(--text-dark);
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .google-login:hover {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(25, 130, 196, 0.15);
+        }
+
+        .google-login img {
+            width: 20px;
+            height: 20px;
+        }
     </style>
 </head>
 <body>
@@ -209,6 +239,10 @@
             
             <button type="submit" class="btn-submit">Entrar na Plataforma</button>
         </form>
+        <a class="google-login" href="{% provider_login_url 'google' %}">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="">
+            Entrar com Google
+        </a>
 
         <a href="{% url 'uniquiz:cadastro' %}" class="register-link">
             Ainda não tem conta? <span>Cadastre-se aqui</span>
